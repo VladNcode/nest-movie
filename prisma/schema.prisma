@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  username     String
+  email        String
+  passwordHash String
+  bio          String
+  avatar       String
+  Reviews      Review[]
+  Comments     Comment[]
+  Like         Like[]
+}
+
+model Actor {
+  id              Int             @id @default(autoincrement())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  firstName       String
+  lastName        String
+  avatar          String
+  MoviesAndActors MovieAndActor[]
+  Comments        Comment[]
+  Like            Like[]
+}
+
+model Movie {
+  id              Int             @id @default(autoincrement())
+  title           String          @db.VarChar(255)
+  createdAt       DateTime        @default(now()) @db.Timestamp(6)
+  description     String
+  releaseDate     DateTime
+  MoviesAndActors MovieAndActor[]
+  Reviews         Review[]
+  Comments        Comment[]
+  Like            Like[]
+}
+
+model MovieAndActor {
+  id      Int   @id @default(autoincrement())
+  movieId Int   @unique
+  actorId Int   @unique
+  Movie   Movie @relation(fields: [movieId], references: [id])
+  Actor   Actor @relation(fields: [actorId], references: [id])
+}
+
+model Review {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  rating    Int
+  body      String    @unique @db.VarChar(1000)
+  userId    Int       @unique
+  movieId   Int       @unique
+  User      User      @relation(fields: [userId], references: [id])
+  Movie     Movie     @relation(fields: [movieId], references: [id])
+  Comments  Comment[]
+  Like      Like[]
+}
+
+model Comment {
+  id              Int               @id @default(autoincrement())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  rating          Int
+  body            String            @unique @db.VarChar(240)
+  userId          Int               @unique
+  actorId         Int               @unique
+  movieId         Int               @unique
+  reviewId        Int               @unique
+  User            User              @relation(fields: [userId], references: [id])
+  Actor           Actor             @relation(fields: [actorId], references: [id])
+  Movie           Movie             @relation(fields: [movieId], references: [id])
+  Reviews         Review            @relation(fields: [reviewId], references: [id])
+  Like            Like[]
+  Comment4Comment Comment4Comment[]
+}
+
+model Comment4Comment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  body      String   @unique @db.VarChar(240)
+  commentId Int      @unique
+  Comment   Comment  @relation(fields: [commentId], references: [id])
+
+  Like Like[]
+}
+
+model Like {
+  id                Int             @id @default(autoincrement())
+  createdAt         DateTime        @default(now())
+  userId            Int             @unique
+  movieId           Int             @unique
+  actorId           Int             @unique
+  reviewId          Int             @unique
+  commentId         Int             @unique
+  comment4CommentId Int             @unique
+  User              User            @relation(fields: [userId], references: [id])
+  Movie             Movie           @relation(fields: [movieId], references: [id])
+  Actor             Actor           @relation(fields: [actorId], references: [id])
+  Review            Review          @relation(fields: [reviewId], references: [id])
+  Comment           Comment         @relation(fields: [commentId], references: [id])
+  Comment4Comment   Comment4Comment @relation(fields: [comment4CommentId], references: [id])
+}
+
+// model Reviews {
+//   id      Int      @id @default(autoincrement())
+//   name    String?  @db.VarChar(255)
+//   email   String   @unique @db.VarChar(255)
+//   Post    Post[]
+//   Profile Profile?
+// }
