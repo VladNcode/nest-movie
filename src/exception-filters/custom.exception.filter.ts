@@ -1,10 +1,18 @@
-import { Catch, ExceptionFilter, ArgumentsHost, HttpStatus, HttpException } from '@nestjs/common';
-import { PrismaClientValidationError } from '@prisma/client/runtime';
+import {
+	Catch,
+	ExceptionFilter,
+	ArgumentsHost,
+	HttpStatus,
+	HttpException,
+	Logger,
+} from '@nestjs/common';
+import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime';
 import { Response } from 'express';
 
 @Catch()
 export class CustomExceptionFilter implements ExceptionFilter {
 	catch(exp: any, host: ArgumentsHost) {
+		Logger.error('CUSTOM ERROR WAS CATCHED');
 		// console.log(exp);
 
 		const context = host.switchToHttp();
@@ -20,6 +28,21 @@ export class CustomExceptionFilter implements ExceptionFilter {
 		const statusCode = isHttpInstance ? exp.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 		let message = isHttpInstance ? exp.message : 'Oops Something went wrong!';
 		let res;
+
+		if (exp instanceof PrismaClientKnownRequestError) {
+			switch (exp.code) {
+				case 'P2002': {
+					message = `${exp.meta?.target} already exist!`;
+				}
+			}
+
+			res = {
+				statusCode: 400,
+				message,
+			};
+
+			return response.status(statusCode).json(res);
+		}
 
 		if (exp instanceof PrismaClientValidationError) {
 			const errorArr = exp.message.match(/(Argument.*)/g);

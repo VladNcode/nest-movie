@@ -38,7 +38,7 @@ model Actor {
 
 model Movie {
   id              Int             @id @default(autoincrement())
-  title           String          @db.VarChar(255)
+  title           String          @unique @db.VarChar(255)
   createdAt       DateTime        @default(now()) @db.Timestamp(6)
   description     String
   releaseDate     DateTime
@@ -50,8 +50,8 @@ model Movie {
 
 model MovieAndActor {
   id      Int   @id @default(autoincrement())
-  movieId Int   @unique
-  actorId Int   @unique
+  movieId Int
+  actorId Int
   Movie   Movie @relation(fields: [movieId], references: [id])
   Actor   Actor @relation(fields: [actorId], references: [id])
 }
