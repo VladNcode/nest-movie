@@ -13,12 +13,14 @@ export class FindMovieDto {
 	title: string;
 
 	@IsOptional()
-	@IsString()
-	skip: string;
+	@Transform(({ value }) => parseInt(value))
+	@IsInt()
+	skip: number;
 
 	@IsOptional()
-	@IsString()
-	take: string;
+	@Transform(({ value }) => parseInt(value))
+	@IsInt()
+	take: number;
 
 	@IsOptional()
 	@IsString()

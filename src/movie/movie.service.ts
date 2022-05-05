@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Movie, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { GetMovies } from './intefaces/get-movies.interface';
 
 @Injectable()
 export class MovieService {
@@ -10,13 +11,7 @@ export class MovieService {
 		return this.prisma.movie.findUnique({ where: { id } });
 	}
 
-	async getMovies(params: {
-		skip?: number;
-		take?: number;
-		cursor?: Prisma.MovieWhereUniqueInput;
-		where?: Prisma.MovieWhereInput;
-		orderBy?: Prisma.MovieOrderByWithRelationInput;
-	}): Promise<Movie[]> {
+	async getMovies(params: GetMovies): Promise<Movie[]> {
 		const { skip, take, cursor, where, orderBy } = params;
 		return this.prisma.movie.findMany({ skip, take, cursor, where, orderBy });
 	}

@@ -33,12 +33,9 @@ export class MovieController {
 		const { skip, take, title, id, order } = query;
 
 		return this.movieService.getMovies({
-			skip: +skip || 0,
-			take: +take || 100,
-			where: {
-				id: id > 1000000000000000000 ? undefined : id || undefined,
-				title: title,
-			},
+			skip: skip || 0,
+			take: take || 100,
+			where: { id, title },
 			orderBy: { id: order },
 		});
 	}
