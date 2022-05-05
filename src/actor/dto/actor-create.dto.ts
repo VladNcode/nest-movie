@@ -8,5 +8,5 @@ export class ActorCreateDto {
 	lastName: string;
 
 	@IsString()
-	avatar: string;
+	photo: string;
 }

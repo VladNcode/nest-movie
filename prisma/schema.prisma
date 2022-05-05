@@ -30,7 +30,7 @@ model Actor {
   updatedAt       DateTime        @updatedAt
   firstName       String
   lastName        String
-  avatar          String
+  photo           String
   MoviesAndActors MovieAndActor[]
   Comments        Comment[]
   Like            Like[]

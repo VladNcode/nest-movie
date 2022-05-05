@@ -16,6 +16,7 @@ import { LikeService } from './like/like.service';
 import { ReviewService } from './review/review.service';
 import { UserService } from './user/user.service';
 import { PrismaService } from './prisma/prisma.service';
+import { MoviesAndActorsService } from './movies-and-actors/movies-and-actors.service';
 
 @Module({
 	imports: [],
@@ -39,6 +40,7 @@ import { PrismaService } from './prisma/prisma.service';
 		ReviewService,
 		UserService,
 		PrismaService,
+		MoviesAndActorsService,
 	],
 })
 export class AppModule {}
