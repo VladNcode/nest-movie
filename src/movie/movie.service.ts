@@ -34,7 +34,7 @@ export class MovieService {
 			create: {
 				tag: actor,
 				firstName: actor.split(' ')[0],
-				lastName: actor.split(' ')[1],
+				lastName: actor.split(' ')[1] || '',
 				photo: 'lol.jpg',
 			},
 		}));
