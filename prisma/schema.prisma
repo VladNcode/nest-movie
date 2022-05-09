@@ -12,11 +12,11 @@ datasource db {
 
 model User {
   id           Int       @id @default(autoincrement())
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
   username     String
   email        String
-  passwordHash String
+  passwordHash String    @map("password_hash")
   bio          String
   avatar       String
   Reviews      Review[]
@@ -25,45 +25,38 @@ model User {
 }
 
 model Actor {
-  id              Int             @id @default(autoincrement())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  firstName       String
-  lastName        String
-  photo           String
-  MoviesAndActors MovieAndActor[]
-  Comments        Comment[]
-  Like            Like[]
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  tag       String    @unique @db.VarChar(255)
+  firstName String    @map("first_name")
+  lastName  String    @map("last_name")
+  photo     String
+  Comments  Comment[]
+  Like      Like[]
+  Movie     Movie[]
 }
 
 model Movie {
-  id              Int             @id @default(autoincrement())
-  title           String          @unique @db.VarChar(255)
-  createdAt       DateTime        @default(now()) @db.Timestamp(6)
-  description     String
-  releaseDate     DateTime
-  MoviesAndActors MovieAndActor[]
-  Reviews         Review[]
-  Comments        Comment[]
-  Like            Like[]
-}
-
-model MovieAndActor {
-  id      Int   @id @default(autoincrement())
-  movieId Int
-  actorId Int
-  Movie   Movie @relation(fields: [movieId], references: [id])
-  Actor   Actor @relation(fields: [actorId], references: [id])
+  id          Int       @id @default(autoincrement())
+  title       String    @unique @db.VarChar(255)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  description String
+  releaseDate DateTime  @map("release_date")
+  actors      Actor[]
+  Reviews     Review[]
+  Comments    Comment[]
+  Like        Like[]
 }
 
 model Review {
   id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   rating    Int
   body      String    @unique @db.VarChar(1000)
-  userId    Int       @unique
-  movieId   Int       @unique
+  userId    Int       @unique @map("user_id")
+  movieId   Int       @unique @map("movie_id")
   User      User      @relation(fields: [userId], references: [id])
   Movie     Movie     @relation(fields: [movieId], references: [id])
   Comments  Comment[]
@@ -72,14 +65,14 @@ model Review {
 
 model Comment {
   id              Int               @id @default(autoincrement())
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
   rating          Int
   body            String            @unique @db.VarChar(240)
-  userId          Int               @unique
-  actorId         Int               @unique
-  movieId         Int               @unique
-  reviewId        Int               @unique
+  userId          Int               @unique @map("user_id")
+  actorId         Int               @unique @map("actor_id")
+  movieId         Int               @unique @map("movie_id")
+  reviewId        Int               @unique @map("review_id")
   User            User              @relation(fields: [userId], references: [id])
   Actor           Actor             @relation(fields: [actorId], references: [id])
   Movie           Movie             @relation(fields: [movieId], references: [id])
@@ -90,24 +83,23 @@ model Comment {
 
 model Comment4Comment {
   id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   body      String   @unique @db.VarChar(240)
-  commentId Int      @unique
+  commentId Int      @unique @map("comment_id")
   Comment   Comment  @relation(fields: [commentId], references: [id])
-
-  Like Like[]
+  Like      Like[]
 }
 
 model Like {
   id                Int             @id @default(autoincrement())
-  createdAt         DateTime        @default(now())
-  userId            Int             @unique
-  movieId           Int             @unique
-  actorId           Int             @unique
-  reviewId          Int             @unique
-  commentId         Int             @unique
-  comment4CommentId Int             @unique
+  createdAt         DateTime        @default(now()) @map("created_at")
+  userId            Int             @unique @map("user_id")
+  movieId           Int             @unique @map("movie_id")
+  actorId           Int             @unique @map("actor_id")
+  reviewId          Int             @unique @map("review_id")
+  commentId         Int             @unique @map("comment_id")
+  comment4CommentId Int             @unique @map("comment4comment_id")
   User              User            @relation(fields: [userId], references: [id])
   Movie             Movie           @relation(fields: [movieId], references: [id])
   Actor             Actor           @relation(fields: [actorId], references: [id])
@@ -115,11 +107,3 @@ model Like {
   Comment           Comment         @relation(fields: [commentId], references: [id])
   Comment4Comment   Comment4Comment @relation(fields: [comment4CommentId], references: [id])
 }
-
-// model Reviews {
-//   id      Int      @id @default(autoincrement())
-//   name    String?  @db.VarChar(255)
-//   email   String   @unique @db.VarChar(255)
-//   Post    Post[]
-//   Profile Profile?
-// }

@@ -12,8 +12,6 @@ import {
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
-import { ActorService } from '../actor/actor.service';
-import { MoviesAndActorsService } from '../movies-and-actors/movies-and-actors.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { FindMovieDto } from './dto/find-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -22,11 +20,7 @@ import { MovieService } from './movie.service';
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('movies')
 export class MovieController {
-	constructor(
-		private readonly movieService: MovieService,
-		private readonly actorService: ActorService,
-		private readonly movieAndActorService: MoviesAndActorsService,
-	) {}
+	constructor(private readonly movieService: MovieService) {}
 
 	@Get('/')
 	async getMovies(@Query() query: FindMovieDto) {
@@ -48,42 +42,28 @@ export class MovieController {
 			throw new NotFoundException('Movie with this ID not found');
 		}
 
-		const actors = await this.movieAndActorService.findActorsInMovie(id);
-		const actorsArray = [];
+		const { actors, ...noActorsMovie } = movie;
 
-		for (const {
-			Actor: { firstName, lastName },
-		} of actors) {
+		const actorsArray = [];
+		for (const { firstName, lastName } of actors) {
 			actorsArray.push(`${firstName} ${lastName}`);
 		}
 
-		return { status: 200, data: { ...movie, actors: actorsArray } };
+		return {
+			status: 'success',
+			movie: { ...noActorsMovie, actors: actorsArray },
+		};
 	}
 
 	@Post('/')
 	async createMovie(@Body() dto: CreateMovieDto) {
 		const { title, description, releaseDate, actors } = dto;
+
 		const date = new Date(releaseDate);
-		const movie = await this.movieService.createMovie({ title, description, releaseDate: date });
-
-		for (const actor of actors) {
-			const firstName = actor.split(' ')[0];
-			const actorExist = await this.actorService.findActor(firstName);
-
-			await this.movieAndActorService.fillMoviesAndActors({
-				Movie: { connect: { id: movie.id } },
-				Actor: {
-					connectOrCreate: {
-						where: { id: actorExist?.id || -1 },
-						create: {
-							firstName,
-							lastName: actor.split(' ')[1],
-							photo: 'lol.jpg',
-						},
-					},
-				},
-			});
-		}
+		const movie = await this.movieService.createMovie(
+			{ title, description, releaseDate: date },
+			actors,
+		);
 
 		return { status: 'success', data: movie };
 	}
@@ -96,7 +76,6 @@ export class MovieController {
 
 	@Delete('/:id')
 	async deleteMovie(@Param('id', ParseIntPipe) id: number) {
-		await this.movieAndActorService.cleanUpMoviesAndActors(id);
 		const deletedMovie = await this.movieService.deleteMovie(id);
 		return { status: 'success', data: deletedMovie };
 	}
