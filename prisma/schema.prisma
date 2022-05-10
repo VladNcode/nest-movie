@@ -11,17 +11,18 @@ datasource db {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  username     String    @unique
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  bio          String
-  avatar       String
-  Reviews      Review[]
-  Comments     Comment[]
-  Like         Like[]
+  id                Int       @id @default(autoincrement())
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  username          String    @unique
+  email             String    @unique
+  passwordHash      String    @map("password_hash")
+  passwordChangedAt DateTime  @default(now()) @map("password_changed_at")
+  bio               String
+  avatar            String
+  Reviews           Review[]
+  Comments          Comment[]
+  Like              Like[]
 }
 
 model Actor {

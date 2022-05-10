@@ -15,6 +15,7 @@ import {
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { FindMovieDto } from './dto/find-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
+import { MOVIE_NOT_FOUND } from './movie.constants';
 import { MovieService } from './movie.service';
 
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -47,7 +48,7 @@ export class MovieController {
 		const movie = await this.movieService.getMovie(id);
 
 		if (!movie) {
-			throw new NotFoundException('Movie with this ID not found');
+			throw new NotFoundException(MOVIE_NOT_FOUND);
 		}
 
 		const { actors, ...noActorsMovie } = movie;

@@ -12,6 +12,7 @@ import {
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
+import { ACTOR_NOT_FOUND } from './actor.constants';
 import { ActorService } from './actor.service';
 import { ActorCreateDto } from './dto/create-actor.dto';
 import { FindActorDto } from './dto/find-actor.dto';
@@ -44,7 +45,7 @@ export class ActorController {
 		const actor = await this.actorService.getActor(id);
 
 		if (!actor) {
-			throw new NotFoundException('Actor with this ID not found');
+			throw new NotFoundException(ACTOR_NOT_FOUND);
 		}
 
 		return { status: 'success', actor };
