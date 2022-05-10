@@ -1,44 +1,30 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user/user.controller';
-import { AuthController } from './auth/auth.controller';
-import { ReviewController } from './review/review.controller';
-import { ActorController } from './actor/actor.controller';
-import { CommentController } from './comment/comment.controller';
-import { Comment4commentController } from './comment4comment/comment4comment.controller';
-import { LikeController } from './like/like.controller';
-import { MovieController } from './movie/movie.controller';
-import { MovieService } from './movie/movie.service';
-import { Comment4commentService } from './comment4comment/comment4comment.service';
-import { ActorService } from './actor/actor.service';
-import { AuthService } from './auth/auth.service';
-import { CommentService } from './comment/comment.service';
-import { LikeService } from './like/like.service';
-import { ReviewService } from './review/review.service';
-import { UserService } from './user/user.service';
 import { PrismaService } from './prisma/prisma.service';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { MovieModule } from './movie/movie.module';
+import { ActorModule } from './actor/actor.module';
+import { ReviewModule } from './review/review.module';
+import { CommentModule } from './comment/comment.module';
+import { Comment4commentModule } from './comment4comment/comment4comment.module';
+import { LikeModule } from './like/like.module';
 
 @Module({
-	imports: [],
-	controllers: [
-		UserController,
-		AuthController,
-		ReviewController,
-		ActorController,
-		CommentController,
-		Comment4commentController,
-		LikeController,
-		MovieController,
+	imports: [
+		ConfigModule.forRoot({
+			envFilePath: `${process.env.NODE_ENV === 'dev' ? '.development.env' : '.env'}`,
+		}),
+		AuthModule,
+		UserModule,
+		MovieModule,
+		ActorModule,
+		ReviewModule,
+		CommentModule,
+		Comment4commentModule,
+		LikeModule,
 	],
-	providers: [
-		MovieService,
-		Comment4commentService,
-		ActorService,
-		AuthService,
-		CommentService,
-		LikeService,
-		ReviewService,
-		UserService,
-		PrismaService,
-	],
+	controllers: [],
+	providers: [PrismaService],
 })
 export class AppModule {}

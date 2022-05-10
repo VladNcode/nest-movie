@@ -1,54 +1,33 @@
-import { Injectable } from '@nestjs/common';
-import { User, Prisma } from '@prisma/client';
+import { compare } from 'bcrypt';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UserCreateDto } from './dto/user-create.dto';
 
 @Injectable()
 export class UserService {
-	constructor(private prisma: PrismaService) {}
+	constructor(private readonly prisma: PrismaService) {}
 
-	async user(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<User | null> {
-		return this.prisma.user.findUnique({
-			where: userWhereUniqueInput,
-		});
+	async findUser(username: string) {
+		return this.prisma.user.findUnique({ where: { username } });
 	}
 
-	async users(params: {
-		skip?: number;
-		take?: number;
-		cursor?: Prisma.UserWhereUniqueInput;
-		where?: Prisma.UserWhereInput;
-		orderBy?: Prisma.UserOrderByWithRelationInput;
-	}): Promise<User[]> {
-		const { skip, take, cursor, where, orderBy } = params;
-		return this.prisma.user.findMany({
-			skip,
-			take,
-			cursor,
-			where,
-			orderBy,
-		});
+	async createUser(data: UserCreateDto) {
+		return this.prisma.user.create({ data });
 	}
 
-	async createUser(data: Prisma.UserCreateInput): Promise<User> {
-		return this.prisma.user.create({
-			data,
-		});
-	}
+	async validateUser(username: string, password: string) {
+		const userExists = await this.findUser(username);
+		if (!userExists) {
+			throw new UnauthorizedException('User not found!');
+		}
 
-	async updateUser(params: {
-		where: Prisma.UserWhereUniqueInput;
-		data: Prisma.UserUpdateInput;
-	}): Promise<User> {
-		const { where, data } = params;
-		return this.prisma.user.update({
-			data,
-			where,
-		});
-	}
+		const isCorrectPassword = await compare(password, userExists.passwordHash);
+		if (!isCorrectPassword) {
+			throw new UnauthorizedException('email or password is incorrect!');
+		}
 
-	async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
-		return this.prisma.user.delete({
-			where,
-		});
+		return {
+			email: userExists.email,
+		};
 	}
 }
