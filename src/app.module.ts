@@ -9,6 +9,7 @@ import { ReviewModule } from './review/review.module';
 import { CommentModule } from './comment/comment.module';
 import { Comment4commentModule } from './comment4comment/comment4comment.module';
 import { LikeModule } from './like/like.module';
+import { RatingModule } from './rating/rating.module';
 
 @Module({
 	imports: [
@@ -23,6 +24,7 @@ import { LikeModule } from './like/like.module';
 		CommentModule,
 		Comment4commentModule,
 		LikeModule,
+		RatingModule,
 	],
 	controllers: [],
 	providers: [PrismaService],

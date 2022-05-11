@@ -15,76 +15,86 @@ enum Role {
   admin
 }
 
+enum LikeType {
+  movie
+  actor
+  review
+  comment
+  comment4Comment
+}
+
+enum CommentType {
+  actor
+  movie
+  review
+}
+
+enum RatingType {
+  actor
+  movie
+  review
+}
+
 model User {
-  id                Int       @id @default(autoincrement())
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
-  username          String    @unique
-  email             String    @unique
-  passwordHash      String    @map("password_hash")
-  passwordChangedAt DateTime  @default(now()) @map("password_changed_at")
+  id                Int               @id @default(autoincrement())
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  username          String            @unique
+  email             String            @unique
+  passwordHash      String            @map("password_hash")
+  passwordChangedAt DateTime          @default(now()) @map("password_changed_at")
   bio               String
   avatar            String
-  role              Role      @default(user)
+  role              Role              @default(user)
   Reviews           Review[]
   Comments          Comment[]
   Like              Like[]
+  Rating            Rating[]
+  Comment4Comment   Comment4Comment[]
 }
 
 model Actor {
-  id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  tag       String    @unique @db.VarChar(255)
-  firstName String    @map("first_name")
-  lastName  String    @map("last_name")
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  tag       String   @unique @db.VarChar(255)
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
   photo     String
-  Comments  Comment[]
-  Like      Like[]
   Movie     Movie[]
 }
 
 model Movie {
-  id          Int       @id @default(autoincrement())
-  title       String    @unique @db.VarChar(255)
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  id          Int      @id @default(autoincrement())
+  title       String   @unique @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @map("updated_at")
   description String
-  releaseDate DateTime  @map("release_date")
+  releaseDate DateTime @map("release_date")
   actors      Actor[]
   Reviews     Review[]
-  Comments    Comment[]
-  Like        Like[]
 }
 
 model Review {
-  id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  rating    Int
-  body      String    @unique @db.VarChar(1000)
-  userId    Int       @unique @map("user_id")
-  movieId   Int       @unique @map("movie_id")
-  User      User      @relation(fields: [userId], references: [id])
-  Movie     Movie     @relation(fields: [movieId], references: [id])
-  Comments  Comment[]
-  Like      Like[]
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  body      String   @unique @db.VarChar(1000)
+  userId    Int      @unique @map("user_id")
+  movieId   Int      @unique @map("movie_id")
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
 }
 
 model Comment {
   id              Int               @id @default(autoincrement())
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
-  rating          Int
   body            String            @unique @db.VarChar(240)
+  commentType     CommentType       @map("comment_type")
+  typeId          Int               @map("type_id")
   userId          Int               @unique @map("user_id")
-  actorId         Int               @unique @map("actor_id")
-  movieId         Int               @unique @map("movie_id")
-  reviewId        Int               @unique @map("review_id")
-  User            User              @relation(fields: [userId], references: [id])
-  Actor           Actor             @relation(fields: [actorId], references: [id])
-  Movie           Movie             @relation(fields: [movieId], references: [id])
-  Reviews         Review            @relation(fields: [reviewId], references: [id])
-  Like            Like[]
+  User            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   Comment4Comment Comment4Comment[]
 }
 
@@ -94,23 +104,28 @@ model Comment4Comment {
   updatedAt DateTime @updatedAt @map("updated_at")
   body      String   @unique @db.VarChar(240)
   commentId Int      @unique @map("comment_id")
-  Comment   Comment  @relation(fields: [commentId], references: [id])
-  Like      Like[]
+  userId    Int      @unique @map("user_id")
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
 }
 
 model Like {
-  id                Int             @id @default(autoincrement())
-  createdAt         DateTime        @default(now()) @map("created_at")
-  userId            Int             @unique @map("user_id")
-  movieId           Int             @unique @map("movie_id")
-  actorId           Int             @unique @map("actor_id")
-  reviewId          Int             @unique @map("review_id")
-  commentId         Int             @unique @map("comment_id")
-  comment4CommentId Int             @unique @map("comment4comment_id")
-  User              User            @relation(fields: [userId], references: [id])
-  Movie             Movie           @relation(fields: [movieId], references: [id])
-  Actor             Actor           @relation(fields: [actorId], references: [id])
-  Review            Review          @relation(fields: [reviewId], references: [id])
-  Comment           Comment         @relation(fields: [commentId], references: [id])
-  Comment4Comment   Comment4Comment @relation(fields: [comment4CommentId], references: [id])
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  likeType  LikeType @map("like_type")
+  typeId    Int      @map("type_id")
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int      @map("user_id")
+
+  @@unique([userId, likeType, typeId])
+}
+
+model Rating {
+  id         Int        @id @default(autoincrement())
+  createdAt  DateTime   @default(now()) @map("created_at")
+  ratingType RatingType @map("rating_type")
+  typeId     Int        @map("type_id")
+  score      Int        @db.SmallInt()
+  User       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int        @unique @map("user_id")
 }

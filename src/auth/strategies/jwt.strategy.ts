@@ -19,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 		});
 	}
 
-	async validate({ email, iat }: Pick<User, 'email'> & { iat: number }) {
+	async validate({ email, id, iat }: Pick<User, 'email' | 'id'> & { iat: number }) {
 		const userExist = await this.userService.getUserByEmail(email);
 
 		if (!userExist) {
@@ -35,6 +35,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 			throw new UnauthorizedException(LOGIN_OR_PASSWORD_WAS_CHANGED);
 		}
 
-		return email;
+		return { email, id };
 	}
 }

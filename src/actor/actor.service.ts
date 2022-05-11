@@ -25,6 +25,18 @@ export class ActorService {
 	}
 
 	async deleteActor(id: number): Promise<Actor> {
-		return this.prisma.actor.delete({ where: { id } });
+		const deletedLikes = this.prisma.like.deleteMany({
+			where: { AND: [{ likeType: 'actor' }, { typeId: id }] },
+		});
+
+		const deletedRatings = this.prisma.rating.deleteMany({
+			where: { AND: [{ ratingType: 'actor' }, { typeId: id }] },
+		});
+
+		const deletedActor = this.prisma.actor.delete({ where: { id } });
+
+		await this.prisma.$transaction([deletedLikes, deletedRatings, deletedActor]);
+
+		return deletedActor;
 	}
 }

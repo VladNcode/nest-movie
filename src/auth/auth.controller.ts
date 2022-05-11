@@ -22,6 +22,7 @@ import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './a
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ReqUserDto } from './dto/req-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 
@@ -55,17 +56,14 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@Roles('admin')
 	@Get('test')
-	async test(@Request() req: { user: string }) {
-		const email = req.user;
-		// console.log(email);
-
-		return { status: 'success' };
+	async test(@Request() req: ReqUserDto) {
+		return { status: 'success', email: req.user.email, id: req.user.id };
 	}
 
 	@UseGuards(JwtAuthGuard)
 	@Patch('/updateEmail')
-	async updateEmail(@Request() req: { user: string }, @Body() dto: UpdateUserEmailDto) {
-		const oldEmail = req.user;
+	async updateEmail(@Request() req: ReqUserDto, @Body() dto: UpdateUserEmailDto) {
+		const oldEmail = req.user.email;
 		const newEmail = dto.email;
 
 		console.log(oldEmail, newEmail);
@@ -76,12 +74,11 @@ export class AuthController {
 
 	@UseGuards(JwtAuthGuard)
 	@Patch('/updatePassword')
-	async updatePassword(@Request() req: { user: string }, @Body() dto: UpdateUserPasswordDto) {
-		const email = req.user;
+	async updatePassword(@Request() req: ReqUserDto, @Body() dto: UpdateUserPasswordDto) {
 		const hashedPassword = await hashPassword(dto.password);
 
 		const { passwordHash, passwordChangedAt, ...user } = await this.userService.updateUserPassword(
-			email,
+			req.user.email,
 			hashedPassword,
 		);
 
@@ -91,10 +88,8 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@Delete('/deleteMe')
 	@HttpCode(204)
-	async deleteMe(@Request() req: { user: string }) {
-		const email = req.user;
-		console.log(email);
-		await this.userService.deleteUserByEmail(email);
+	async deleteMe(@Request() req: ReqUserDto) {
+		await this.userService.deleteUserByEmail(req.user.email);
 
 		return { status: 'success', message: ACCOUNT_DELETED_SUCCESSFULLY };
 	}
