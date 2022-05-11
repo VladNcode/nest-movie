@@ -44,7 +44,7 @@ export class AuthController {
 
 	@Post('register')
 	async register(@Body() dto: RegisterDto) {
-		const existingUser = await this.userService.getUser(dto.username);
+		const existingUser = await this.userService.getUser({ username: dto.username });
 		if (existingUser) {
 			throw new BadRequestException('User already exist');
 		}

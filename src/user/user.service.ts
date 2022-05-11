@@ -5,17 +5,14 @@ import { UserCreateDto } from './dto/create-user.dto';
 import { GetUsers } from './interfaces/get-users.interface';
 import { Prisma, User } from '@prisma/client';
 import { USER_NOT_FOUND, EMAIL_OR_PASSWORD_IS_INCORRECT } from './user.constants';
+import { IGetUser } from './interfaces/get-user.interface';
 
 @Injectable()
 export class UserService {
 	constructor(private readonly prisma: PrismaService) {}
 
-	async getUser(username: string) {
-		return this.prisma.user.findUnique({ where: { username } });
-	}
-
-	async getUserByEmail(email: string) {
-		return this.prisma.user.findUnique({ where: { email } });
+	async getUser(data: IGetUser) {
+		return this.prisma.user.findUnique({ where: { ...data } });
 	}
 
 	async getUsers(params: GetUsers) {
@@ -51,7 +48,7 @@ export class UserService {
 	}
 
 	async validateUser(username: string, password: string) {
-		const userExists = await this.getUser(username);
+		const userExists = await this.getUser({ username });
 		if (!userExists) {
 			throw new UnauthorizedException(USER_NOT_FOUND);
 		}

@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 	}
 
 	async validate({ email, id, iat }: Pick<User, 'email' | 'id'> & { iat: number }) {
-		const userExist = await this.userService.getUserByEmail(email);
+		const userExist = await this.userService.getUser({ email });
 
 		if (!userExist) {
 			throw new UnauthorizedException(LOGIN_OR_PASSWORD_WAS_CHANGED);
