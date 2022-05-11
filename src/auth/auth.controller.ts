@@ -13,6 +13,7 @@ import {
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
+import { Roles } from '../decorators/roles.decorator';
 import { hashPassword } from '../helpers/hashPassword';
 import { UpdateUserEmailDto } from '../user/dto/update-user-email.dto';
 import { UpdateUserPasswordDto } from '../user/dto/update-user-password.dto';
@@ -22,7 +23,10 @@ import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 
+@UsePipes(new ValidationPipe({ transform: true }))
+@UseGuards(RolesGuard)
 @Controller('auth')
 export class AuthController {
 	constructor(
@@ -30,7 +34,6 @@ export class AuthController {
 		private readonly authService: AuthService,
 	) {}
 
-	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Post('login')
 	async login(@Body() { username, password }: AuthDto) {
@@ -38,7 +41,6 @@ export class AuthController {
 		return this.authService.login(user.email);
 	}
 
-	@UsePipes(new ValidationPipe())
 	@Post('register')
 	async register(@Body() dto: RegisterDto) {
 		const existingUser = await this.userService.getUser(dto.username);
@@ -48,6 +50,16 @@ export class AuthController {
 
 		const user = await this.authService.signup(dto);
 		return { status: 'success', user };
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Roles('admin')
+	@Get('test')
+	async test(@Request() req: { user: string }) {
+		const email = req.user;
+		// console.log(email);
+
+		return { status: 'success' };
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -81,14 +93,9 @@ export class AuthController {
 	@HttpCode(204)
 	async deleteMe(@Request() req: { user: string }) {
 		const email = req.user;
+		console.log(email);
 		await this.userService.deleteUserByEmail(email);
 
 		return { status: 'success', message: ACCOUNT_DELETED_SUCCESSFULLY };
-	}
-
-	@UseGuards(JwtAuthGuard)
-	@Get('profile')
-	getProfile(@Request() req: { user: string }) {
-		return { user: req.user };
 	}
 }

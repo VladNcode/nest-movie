@@ -10,6 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  user
+  admin
+}
+
 model User {
   id                Int       @id @default(autoincrement())
   createdAt         DateTime  @default(now()) @map("created_at")
@@ -20,6 +25,7 @@ model User {
   passwordChangedAt DateTime  @default(now()) @map("password_changed_at")
   bio               String
   avatar            String
+  role              Role      @default(user)
   Reviews           Review[]
   Comments          Comment[]
   Like              Like[]
