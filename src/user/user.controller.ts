@@ -9,15 +9,21 @@ import {
 	Patch,
 	Post,
 	Query,
+	UseGuards,
 	UsePipes,
 	ValidationPipe,
+	Request,
 } from '@nestjs/common';
+import { ReqUserDto } from '../auth/dto/req-user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { sanitizeUser } from '../helpers/sanitize.user';
 import { UserCreateDto } from './dto/create-user.dto';
 import { FindUserDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { USER_NOT_FOUND } from './user.constants';
 import { UserService } from './user.service';
 
+@UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('users')
 export class UserController {
@@ -64,13 +70,13 @@ export class UserController {
 			passwordChangedAt: new Date(Date.now() - 1000),
 		});
 
-		return { status: 'success', user };
+		return { status: 'success', user: sanitizeUser(user) };
 	}
 
-	@Patch('/:id')
-	async updateUser(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
-		const updatedUser = await this.userService.updateUser(id, dto);
-		return { status: 'success', data: updatedUser };
+	@Patch('/')
+	async updateUser(@Request() req: ReqUserDto, @Body() dto: UpdateUserDto) {
+		const updatedUser = await this.userService.updateUser(req.user.id, dto);
+		return { status: 'success', data: sanitizeUser(updatedUser) };
 	}
 
 	@Delete('/:id')

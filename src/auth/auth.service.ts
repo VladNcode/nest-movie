@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { UserService } from '../user/user.service';
 import { hashPassword } from '../helpers/hashPassword';
+import { sanitizeUser } from '../helpers/sanitize.user';
 
 @Injectable()
 export class AuthService {
@@ -23,11 +24,7 @@ export class AuthService {
 
 		const passwordHash = await hashPassword(dto.password);
 
-		const {
-			passwordHash: ph,
-			passwordChangedAt,
-			...userWithoutPassword
-		} = await this.userService.createUser({
+		const user = await this.userService.createUser({
 			username,
 			email,
 			passwordHash,
@@ -36,6 +33,6 @@ export class AuthService {
 			passwordChangedAt: new Date(Date.now() - 1000),
 		});
 
-		return userWithoutPassword;
+		return sanitizeUser(user);
 	}
 }

@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { Roles } from '../decorators/roles.decorator';
 import { hashPassword } from '../helpers/hashPassword';
+import { sanitizeUser } from '../helpers/sanitize.user';
 import { UpdateUserEmailDto } from '../user/dto/update-user-email.dto';
 import { UpdateUserPasswordDto } from '../user/dto/update-user-password.dto';
 import { UserService } from '../user/user.service';
@@ -68,8 +69,8 @@ export class AuthController {
 
 		console.log(oldEmail, newEmail);
 
-		const { passwordHash, ...user } = await this.userService.updateUserEmail(oldEmail, newEmail);
-		return { status: 'success', user };
+		const user = await this.userService.updateUserEmail(oldEmail, newEmail);
+		return { status: 'success', user: sanitizeUser(user) };
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -77,12 +78,9 @@ export class AuthController {
 	async updatePassword(@Request() req: ReqUserDto, @Body() dto: UpdateUserPasswordDto) {
 		const hashedPassword = await hashPassword(dto.password);
 
-		const { passwordHash, passwordChangedAt, ...user } = await this.userService.updateUserPassword(
-			req.user.email,
-			hashedPassword,
-		);
+		const user = await this.userService.updateUserPassword(req.user.email, hashedPassword);
 
-		return { status: 'success', message: PASSWORD_UPDATED_SUCCESSFULLY, user };
+		return { status: 'success', message: PASSWORD_UPDATED_SUCCESSFULLY, user: sanitizeUser(user) };
 	}
 
 	@UseGuards(JwtAuthGuard)
