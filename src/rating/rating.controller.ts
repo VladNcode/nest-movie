@@ -42,6 +42,12 @@ export class RatingController {
 		@Request() req: ReqUserDto,
 		@Body() { ratingType, typeId }: GetOrDeleteRatingDto,
 	): Promise<UserAlreadyRated> {
+		const record = await this.prisma.checkIfRecordExists(ratingType, typeId);
+
+		if (!record) {
+			throw new NotFoundException(ITEM_NOT_FOUND(ratingType));
+		}
+
 		const rated = await this.ratingService.getRating({ ratingType, typeId, userId: req.user.id });
 		if (!rated) {
 			return { status: 'success', message: USER_HAVE_NOT_RATED_YET };

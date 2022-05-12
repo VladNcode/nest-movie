@@ -31,6 +31,12 @@ export class LikeController {
 		@Request() req: ReqUserDto,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<{ status: string; userLiked: boolean }> {
+		const record = await this.prisma.checkIfRecordExists(likeType, typeId);
+
+		if (!record) {
+			throw new NotFoundException(ITEM_NOT_FOUND(likeType));
+		}
+
 		const liked = await this.likeService.findLike({ likeType, typeId, userId: req.user.id });
 
 		if (!liked) {
