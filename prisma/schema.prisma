@@ -123,9 +123,12 @@ model Like {
 model Rating {
   id         Int        @id @default(autoincrement())
   createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
   ratingType RatingType @map("rating_type")
   typeId     Int        @map("type_id")
   score      Int        @db.SmallInt()
   User       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     Int        @unique @map("user_id")
+  userId     Int        @map("user_id")
+
+  @@unique([userId, ratingType, typeId])
 }

@@ -33,8 +33,22 @@ export class CustomExceptionFilter implements ExceptionFilter {
 		if (exp instanceof PrismaClientKnownRequestError) {
 			switch (exp.code) {
 				case 'P2002': {
-					message = `${exp.meta?.target} already exist!`;
+					const ratingError = exp.message.match(
+						/Unique constraint failed on the fields: \(`user_id`,`rating_type`,`type_id`\)/,
+					);
+
+					const likeError = exp.message.match(
+						/Unique constraint failed on the fields: \(`user_id`,`like_type`,`type_id`\)/,
+					);
+
 					statusCode = 400;
+
+					message = ratingError
+						? 'This user already rated this record!'
+						: likeError
+						? 'This user already liked this record!'
+						: `${exp.meta?.target} already exist!`;
+
 					break;
 				}
 				case 'P2025': {

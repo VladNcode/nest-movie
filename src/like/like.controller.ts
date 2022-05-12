@@ -8,12 +8,13 @@ import {
 	Request,
 	UseGuards,
 	NotFoundException,
+	HttpCode,
 } from '@nestjs/common';
 import { ReqUserDto } from '../auth/dto/req-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrDeleteLikeDto } from './dto/create-like.dto';
-import { ITEM_NOT_FOUND } from './like.constants';
+import { ITEM_NOT_FOUND, LIKE_DELETED_SUCCESSFULLY } from './like.constants';
 import { LikeService } from './like.service';
 
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -24,23 +25,22 @@ export class LikeController {
 
 	@Post('/')
 	async create(@Request() req: ReqUserDto, @Body() { likeType, typeId }: CreateOrDeleteLikeDto) {
-		const type = {
-			movie: await this.prisma.movie.findUnique({ where: { id: typeId } }),
-			actor: await this.prisma.actor.findUnique({ where: { id: typeId } }),
-			review: await this.prisma.review.findUnique({ where: { id: typeId } }),
-			comment: await this.prisma.comment.findUnique({ where: { id: typeId } }),
-			comment4Comment: await this.prisma.comment4Comment.findUnique({ where: { id: typeId } }),
-		};
+		const record = this.prisma.checkIfRecordExists(likeType, typeId);
 
-		if (!type[likeType]) {
+		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(likeType));
 		}
 
-		return this.likeService.createLike(likeType, typeId, req.user.id);
+		const like = await this.likeService.createLike(likeType, typeId, req.user.id);
+
+		return { status: 'success', like };
 	}
 
 	@Delete('/')
+	@HttpCode(204)
 	async delete(@Request() req: ReqUserDto, @Body() { likeType, typeId }: CreateOrDeleteLikeDto) {
-		return this.likeService.deleteLike(likeType, typeId, req.user.id);
+		await this.likeService.deleteLike(likeType, typeId, req.user.id);
+
+		return { status: 'success', message: LIKE_DELETED_SUCCESSFULLY };
 	}
 }
