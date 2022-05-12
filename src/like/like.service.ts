@@ -6,6 +6,17 @@ import { PrismaService } from '../prisma/prisma.service';
 export class LikeService {
 	constructor(private readonly prisma: PrismaService) {}
 
+	async countLikes(type: LikeType, id: number) {
+		const count = await this.prisma.like.aggregate({
+			_count: true,
+			where: {
+				AND: [{ likeType: type }, { typeId: id }],
+			},
+		});
+
+		return count._count;
+	}
+
 	async createLike(likeType: LikeType, typeId: number, userId: number): Promise<Like> {
 		return this.prisma.like.create({
 			data: {

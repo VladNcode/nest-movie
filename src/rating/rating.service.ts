@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Rating } from '@prisma/client';
+import { Rating, RatingType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrUpdateRatingDto } from './dto/create-or-update-rating.dto';
 import { DeleteRatingDto } from './dto/delete-rating.dto';
@@ -31,5 +31,18 @@ export class RatingService {
 		return this.prisma.rating.delete({
 			where: { userId_ratingType_typeId: { ratingType, typeId, userId } },
 		});
+	}
+
+	async findRatingAverage(type: RatingType, id: number) {
+		const avg = await this.prisma.rating.aggregate({
+			_avg: {
+				score: true,
+			},
+			where: {
+				AND: [{ ratingType: type }, { typeId: id }],
+			},
+		});
+
+		return avg._avg;
 	}
 }

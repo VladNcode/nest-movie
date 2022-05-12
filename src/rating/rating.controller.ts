@@ -10,14 +10,17 @@ import {
 	Delete,
 	Patch,
 	HttpCode,
+	Get,
 } from '@nestjs/common';
+import { Rating } from '@prisma/client';
 import { ReqUserDto } from '../auth/dto/req-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrUpdateRatingDto } from './dto/create-or-update-rating.dto';
 import { DeleteRatingDto } from './dto/delete-rating.dto';
-import { RATING_DELETED_SUCCESSFULLY } from './rating.constants';
+import { FindRatingAverageDto } from './dto/find-average-rating.dto';
+import { COULD_NOT_FIND_AVERAGE, RATING_DELETED_SUCCESSFULLY } from './rating.constants';
 import { RatingService } from './rating.service';
 
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -29,11 +32,38 @@ export class RatingController {
 		private readonly prisma: PrismaService,
 	) {}
 
+	@Get('/avg')
+	async getAverage(@Body() { ratingType, typeId }: FindRatingAverageDto) {
+		const record = await this.prisma.checkIfRecordExists(ratingType, typeId);
+
+		if (!record) {
+			throw new NotFoundException(ITEM_NOT_FOUND(ratingType));
+		}
+
+		const avg = await this.ratingService.findRatingAverage(ratingType, typeId);
+
+		if (avg) {
+			return {
+				status: 'success',
+				data: {
+					type: ratingType,
+					id: typeId,
+					ratingAverage: avg,
+				},
+			};
+		} else {
+			return { status: 'failure', message: COULD_NOT_FIND_AVERAGE };
+		}
+	}
+
 	@Post('/')
-	async create(@Request() req: ReqUserDto, @Body() dto: CreateOrUpdateRatingDto) {
+	async create(
+		@Request() req: ReqUserDto,
+		@Body() dto: CreateOrUpdateRatingDto,
+	): Promise<{ status: string; rating: Rating }> {
 		const { ratingType, typeId, score } = dto;
 
-		const record = this.prisma.checkIfRecordExists(ratingType, typeId);
+		const record = await this.prisma.checkIfRecordExists(ratingType, typeId);
 
 		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(ratingType));
@@ -50,7 +80,10 @@ export class RatingController {
 	}
 
 	@Patch('/')
-	async update(@Request() req: ReqUserDto, @Body() dto: CreateOrUpdateRatingDto) {
+	async update(
+		@Request() req: ReqUserDto,
+		@Body() dto: CreateOrUpdateRatingDto,
+	): Promise<{ status: string; rating: Rating }> {
 		const { ratingType, typeId, score } = dto;
 
 		const updatedRating = await this.ratingService.updateRating({
@@ -65,7 +98,10 @@ export class RatingController {
 
 	@Delete('/')
 	@HttpCode(204)
-	async delete(@Request() req: ReqUserDto, @Body() { ratingType, typeId }: DeleteRatingDto) {
+	async delete(
+		@Request() req: ReqUserDto,
+		@Body() { ratingType, typeId }: DeleteRatingDto,
+	): Promise<{ status: string; message: string }> {
 		await this.ratingService.deleteRating({
 			ratingType,
 			typeId,
