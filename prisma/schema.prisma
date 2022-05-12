@@ -80,10 +80,12 @@ model Review {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   body      String   @unique @db.VarChar(1000)
-  userId    Int      @unique @map("user_id")
-  movieId   Int      @unique @map("movie_id")
+  userId    Int      @map("user_id")
+  movieId   Int      @map("movie_id")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   Movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
 }
 
 model Comment {
