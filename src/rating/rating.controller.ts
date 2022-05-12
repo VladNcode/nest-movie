@@ -18,19 +18,37 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrUpdateRatingDto } from './dto/create-or-update-rating.dto';
-import { DeleteRatingDto } from './dto/delete-rating.dto';
+import { GetOrDeleteRatingDto } from './dto/delete-rating.dto';
 import { FindRatingAverageDto } from './dto/find-average-rating.dto';
-import { COULD_NOT_FIND_AVERAGE, RATING_DELETED_SUCCESSFULLY } from './rating.constants';
+import { UserAlreadyRated } from './interfaces/user-already-rated.interface';
+import {
+	COULD_NOT_FIND_AVERAGE,
+	RATING_DELETED_SUCCESSFULLY,
+	USER_HAVE_NOT_RATED_YET,
+} from './rating.constants';
 import { RatingService } from './rating.service';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
-@Controller('ratings')
+@Controller('rating')
 export class RatingController {
 	constructor(
 		private readonly ratingService: RatingService,
 		private readonly prisma: PrismaService,
 	) {}
+
+	@Get('/')
+	async userAlreadyRated(
+		@Request() req: ReqUserDto,
+		@Body() { ratingType, typeId }: GetOrDeleteRatingDto,
+	): Promise<UserAlreadyRated> {
+		const rated = await this.ratingService.getRating({ ratingType, typeId, userId: req.user.id });
+		if (!rated) {
+			return { status: 'success', message: USER_HAVE_NOT_RATED_YET };
+		}
+
+		return { status: 'success', userRating: rated };
+	}
 
 	@Get('/avg')
 	async getAverage(@Body() { ratingType, typeId }: FindRatingAverageDto) {
@@ -48,7 +66,7 @@ export class RatingController {
 				data: {
 					type: ratingType,
 					id: typeId,
-					ratingAverage: avg,
+					ratingAverage: Math.floor(avg),
 				},
 			};
 		} else {
@@ -100,7 +118,7 @@ export class RatingController {
 	@HttpCode(204)
 	async delete(
 		@Request() req: ReqUserDto,
-		@Body() { ratingType, typeId }: DeleteRatingDto,
+		@Body() { ratingType, typeId }: GetOrDeleteRatingDto,
 	): Promise<{ status: string; message: string }> {
 		await this.ratingService.deleteRating({
 			ratingType,

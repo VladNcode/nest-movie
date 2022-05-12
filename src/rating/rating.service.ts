@@ -2,11 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { Rating, RatingType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrUpdateRatingDto } from './dto/create-or-update-rating.dto';
-import { DeleteRatingDto } from './dto/delete-rating.dto';
+import { GetOrDeleteRatingDto } from './dto/delete-rating.dto';
 
 @Injectable()
 export class RatingService {
 	constructor(private readonly prisma: PrismaService) {}
+
+	async getRating(data: GetOrDeleteRatingDto): Promise<Rating | null> {
+		const { ratingType, typeId, userId } = data;
+
+		return this.prisma.rating.findUnique({
+			where: { userId_ratingType_typeId: { ratingType, typeId, userId } },
+		});
+	}
 
 	async createRating(data: CreateOrUpdateRatingDto): Promise<Rating> {
 		const { ratingType, typeId, userId, score } = data;
@@ -25,7 +33,7 @@ export class RatingService {
 		});
 	}
 
-	async deleteRating(data: DeleteRatingDto): Promise<Rating> {
+	async deleteRating(data: GetOrDeleteRatingDto): Promise<Rating> {
 		const { ratingType, typeId, userId } = data;
 
 		return this.prisma.rating.delete({
@@ -33,7 +41,7 @@ export class RatingService {
 		});
 	}
 
-	async findRatingAverage(type: RatingType, id: number) {
+	async findRatingAverage(type: RatingType, id: number): Promise<number | null> {
 		const avg = await this.prisma.rating.aggregate({
 			_avg: {
 				score: true,
@@ -43,6 +51,6 @@ export class RatingService {
 			},
 		});
 
-		return avg._avg;
+		return avg._avg.score;
 	}
 }

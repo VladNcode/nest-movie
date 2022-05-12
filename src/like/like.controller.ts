@@ -16,6 +16,7 @@ import { ReqUserDto } from '../auth/dto/req-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrDeleteLikeDto } from './dto/create-like.dto';
+import { CountLikes } from './interfaces/count-likes.interface';
 import { COULD_NOT_COUNT_LIKES, ITEM_NOT_FOUND, LIKE_DELETED_SUCCESSFULLY } from './like.constants';
 import { LikeService } from './like.service';
 
@@ -25,8 +26,22 @@ import { LikeService } from './like.service';
 export class LikeController {
 	constructor(private readonly likeService: LikeService, private readonly prisma: PrismaService) {}
 
+	@Get('/userLike')
+	async userAlreadyLiked(
+		@Request() req: ReqUserDto,
+		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
+	): Promise<{ status: string; userLiked: boolean }> {
+		const liked = await this.likeService.findLike({ likeType, typeId, userId: req.user.id });
+
+		if (!liked) {
+			return { status: 'success', userLiked: false };
+		}
+
+		return { status: 'success', userLiked: true };
+	}
+
 	@Get('/count')
-	async count(@Body() { likeType, typeId }: CreateOrDeleteLikeDto) {
+	async count(@Body() { likeType, typeId }: CreateOrDeleteLikeDto): Promise<CountLikes> {
 		const record = await this.prisma.checkIfRecordExists(likeType, typeId);
 
 		if (!record) {
@@ -40,9 +55,9 @@ export class LikeController {
 				status: 'success',
 				data: { type: likeType, id: typeId, likeCount: count },
 			};
-		} else {
-			return { status: 'failure', message: COULD_NOT_COUNT_LIKES };
 		}
+
+		return { status: 'failure', message: COULD_NOT_COUNT_LIKES };
 	}
 
 	@Post('/')
@@ -56,7 +71,7 @@ export class LikeController {
 			throw new NotFoundException(ITEM_NOT_FOUND(likeType));
 		}
 
-		const like = await this.likeService.createLike(likeType, typeId, req.user.id);
+		const like = await this.likeService.createLike({ likeType, typeId, userId: req.user.id });
 
 		return { status: 'success', like };
 	}
@@ -67,7 +82,7 @@ export class LikeController {
 		@Request() req: ReqUserDto,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<{ status: string; message: string }> {
-		await this.likeService.deleteLike(likeType, typeId, req.user.id);
+		await this.likeService.deleteLike({ likeType, typeId, userId: req.user.id });
 
 		return { status: 'success', message: LIKE_DELETED_SUCCESSFULLY };
 	}
