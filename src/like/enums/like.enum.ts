@@ -3,5 +3,5 @@ export interface LikeType {
 	actor: string;
 	review: string;
 	comment: string;
-	comment4Comment: string;
+	commentResponse: string;
 }

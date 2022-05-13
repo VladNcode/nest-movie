@@ -7,7 +7,7 @@ import { MovieModule } from './movie/movie.module';
 import { ActorModule } from './actor/actor.module';
 import { ReviewModule } from './review/review.module';
 import { CommentModule } from './comment/comment.module';
-import { Comment4commentModule } from './comment4comment/comment4comment.module';
+import { CommentResponseModule } from './comment-response/comment-response.module';
 import { LikeModule } from './like/like.module';
 import { RatingModule } from './rating/rating.module';
 
@@ -22,7 +22,7 @@ import { RatingModule } from './rating/rating.module';
 		ActorModule,
 		ReviewModule,
 		CommentModule,
-		Comment4commentModule,
+		CommentResponseModule,
 		LikeModule,
 		RatingModule,
 	],

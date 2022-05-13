@@ -20,7 +20,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 			actor: await this.actor.findUnique({ where: { id } }),
 			review: await this.review.findUnique({ where: { id } }),
 			comment: await this.comment.findUnique({ where: { id } }),
-			comment4Comment: await this.comment4Comment.findUnique({ where: { id } }),
+			commentResponse: await this.commentResponse.findUnique({ where: { id } }),
 		};
 
 		if (!models[type]) {

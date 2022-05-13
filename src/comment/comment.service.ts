@@ -9,13 +9,37 @@ export class CommentService {
 	constructor(private readonly prisma: PrismaService) {}
 
 	async getComment(id: number): Promise<Comment | null> {
-		return this.prisma.comment.findUnique({ where: { id } });
+		return this.prisma.comment.findUnique({
+			where: { id },
+			include: {
+				CommentResponse: {
+					select: {
+						userId: true,
+						body: true,
+					},
+				},
+			},
+		});
 	}
 
 	async getComments(params: GetComments): Promise<Comment[]> {
 		const { skip, take, cursor, where, orderBy } = params;
 
-		return this.prisma.comment.findMany({ skip, take, cursor, where, orderBy });
+		return this.prisma.comment.findMany({
+			skip,
+			take,
+			cursor,
+			where,
+			orderBy,
+			include: {
+				CommentResponse: {
+					select: {
+						userId: true,
+						body: true,
+					},
+				},
+			},
+		});
 	}
 
 	async createComment(data: CreateOrUpdateCommentDto): Promise<Comment> {

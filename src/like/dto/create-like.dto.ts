@@ -7,6 +7,6 @@ export class CreateOrDeleteLikeDto {
 	typeId: number;
 
 	@IsNotEmpty()
-	@IsIn(['movie', 'actor', 'review', 'comment', 'comment4Comment'])
+	@IsIn(['movie', 'actor', 'review', 'comment', 'commentResponse'])
 	likeType: LikeType;
 }
