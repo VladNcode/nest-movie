@@ -1,6 +1,6 @@
 import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { LikeOrRatingType } from './types/like-or-rating.type';
+import { LikeRatingCommentType } from './types/like-or-rating.type';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
@@ -14,7 +14,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 		});
 	}
 
-	async checkIfRecordExists(type: LikeOrRatingType, id: number) {
+	async checkIfRecordExists(type: LikeRatingCommentType, id: number) {
 		const models = {
 			movie: await this.movie.findUnique({ where: { id } }),
 			actor: await this.actor.findUnique({ where: { id } }),
