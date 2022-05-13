@@ -33,9 +33,13 @@ export class ActorService {
 			where: { AND: [{ ratingType: 'actor' }, { typeId: id }] },
 		});
 
+		const deleteComments = this.prisma.comment.deleteMany({
+			where: { AND: [{ commentType: 'actor' }, { typeId: id }] },
+		});
+
 		const deletedActor = this.prisma.actor.delete({ where: { id } });
 
-		await this.prisma.$transaction([deletedLikes, deletedRatings, deletedActor]);
+		await this.prisma.$transaction([deletedLikes, deletedRatings, deleteComments, deletedActor]);
 
 		return deletedActor;
 	}

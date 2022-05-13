@@ -54,6 +54,14 @@ export class CommentService {
 	}
 
 	async deleteComment(id: number): Promise<Comment> {
-		return this.prisma.comment.delete({ where: { id } });
+		const deletedLikes = this.prisma.like.deleteMany({
+			where: { AND: [{ likeType: 'comment' }, { typeId: id }] },
+		});
+
+		const deletedComment = this.prisma.comment.delete({ where: { id } });
+
+		await this.prisma.$transaction([deletedLikes, deletedComment]);
+
+		return deletedComment;
 	}
 }

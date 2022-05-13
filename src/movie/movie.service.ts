@@ -64,9 +64,13 @@ export class MovieService {
 			where: { AND: [{ ratingType: 'movie' }, { typeId: id }] },
 		});
 
+		const deleteComments = this.prisma.comment.deleteMany({
+			where: { AND: [{ commentType: 'movie' }, { typeId: id }] },
+		});
+
 		const deletedMovie = this.prisma.movie.delete({ where: { id } });
 
-		await this.prisma.$transaction([deletedLikes, deletedRatings, deletedMovie]);
+		await this.prisma.$transaction([deletedLikes, deletedRatings, deleteComments, deletedMovie]);
 
 		return deletedMovie;
 	}

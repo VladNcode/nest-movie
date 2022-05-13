@@ -31,6 +31,22 @@ export class ReviewService {
 	}
 
 	async deleteReview(id: number): Promise<Review> {
-		return this.prisma.review.delete({ where: { id } });
+		const deletedLikes = this.prisma.like.deleteMany({
+			where: { AND: [{ likeType: 'review' }, { typeId: id }] },
+		});
+
+		const deleteComments = this.prisma.comment.deleteMany({
+			where: { AND: [{ commentType: 'review' }, { typeId: id }] },
+		});
+
+		const deletedRatings = this.prisma.rating.deleteMany({
+			where: { AND: [{ ratingType: 'review' }, { typeId: id }] },
+		});
+
+		const deletedReview = this.prisma.review.delete({ where: { id } });
+
+		await this.prisma.$transaction([deletedLikes, deleteComments, deletedRatings, deletedReview]);
+
+		return deletedReview;
 	}
 }
