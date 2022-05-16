@@ -20,8 +20,7 @@ export class AuthService {
 	}
 
 	async signup(dto: RegisterDto) {
-		const { username, email, bio, avatar } = dto;
-
+		const { username, email, bio } = dto;
 		const passwordHash = await hashPassword(dto.password);
 
 		const user = await this.userService.createUser({
@@ -29,7 +28,6 @@ export class AuthService {
 			email,
 			passwordHash,
 			bio,
-			avatar,
 			passwordChangedAt: new Date(Date.now() - 1000),
 		});
 

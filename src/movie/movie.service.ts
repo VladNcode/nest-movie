@@ -44,6 +44,7 @@ export class MovieService {
 				title,
 				description,
 				releaseDate,
+				posters: ['movie_poster.jpg'],
 				actors: {
 					connectOrCreate: actorsData,
 				},

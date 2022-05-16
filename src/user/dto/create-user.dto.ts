@@ -10,10 +10,6 @@ export class UserCreateDto {
 	bio: string;
 
 	@IsString()
-	@IsNotEmpty()
-	avatar: string;
-
-	@IsString()
 	@IsEmail()
 	@IsNotEmpty()
 	email: string;

@@ -9,9 +9,14 @@ import {
 	Patch,
 	Post,
 	Query,
+	UploadedFile,
+	UseInterceptors,
 	UsePipes,
 	ValidationPipe,
+	Headers,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { getFilePath } from '../helpers/getFilePath';
 import { ACTOR_NOT_FOUND } from './actor.constants';
 import { ActorService } from './actor.service';
 import { ActorCreateDto } from './dto/create-actor.dto';
@@ -55,6 +60,19 @@ export class ActorController {
 	async createActor(@Body() dto: ActorCreateDto) {
 		const actor = await this.actorService.createActor(dto);
 		return { status: 'success', data: actor };
+	}
+
+	@UseInterceptors(FileInterceptor('file'))
+	@Post('/:id/photo')
+	async uploadPhoto(
+		@Param('id', ParseIntPipe) id: number,
+		@UploadedFile() { destination, filename }: Express.Multer.File,
+		@Headers('host') host: string,
+	) {
+		const photo = getFilePath(host, destination, filename);
+		const updatedActor = await this.actorService.updateActor(id, { photo });
+
+		return { status: 'success', actor: updatedActor };
 	}
 
 	@Patch('/:id')

@@ -12,10 +12,6 @@ export class RegisterDto {
 
 	@IsString()
 	@IsNotEmpty()
-	avatar: string;
-
-	@IsString()
-	@IsNotEmpty()
 	bio: string;
 
 	@IsString()

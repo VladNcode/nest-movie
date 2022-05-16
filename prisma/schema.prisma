@@ -44,7 +44,7 @@ model User {
   passwordHash      String            @map("password_hash")
   passwordChangedAt DateTime          @default(now()) @map("password_changed_at")
   bio               String
-  avatar            String
+  avatar            String            @default("avatar.jpg")
   role              Role              @default(user)
   Reviews           Review[]
   Comments          Comment[]
@@ -60,7 +60,7 @@ model Actor {
   tag       String   @unique @db.VarChar(255)
   firstName String   @map("first_name")
   lastName  String   @map("last_name")
-  photo     String
+  photo     String   @default("actor_photo.jpg")
   Movie     Movie[]
 }
 
@@ -70,6 +70,7 @@ model Movie {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt   DateTime @updatedAt @map("updated_at")
   description String
+  posters     String[]
   releaseDate DateTime @map("release_date")
   actors      Actor[]
   Reviews     Review[]

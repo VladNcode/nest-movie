@@ -10,9 +10,16 @@ import { CommentModule } from './comment/comment.module';
 import { CommentResponseModule } from './comment-response/comment-response.module';
 import { LikeModule } from './like/like.module';
 import { RatingModule } from './rating/rating.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { path } from 'app-root-path';
+import { join } from 'path';
 
 @Module({
 	imports: [
+		ServeStaticModule.forRoot({
+			rootPath: join(path, 'uploads'),
+			exclude: ['/api*'],
+		}),
 		ConfigModule.forRoot({
 			envFilePath: `${process.env.NODE_ENV === 'dev' ? '.development.env' : '.env'}`,
 		}),

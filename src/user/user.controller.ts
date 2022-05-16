@@ -13,9 +13,14 @@ import {
 	UsePipes,
 	ValidationPipe,
 	Request,
+	UploadedFile,
+	UseInterceptors,
+	Headers,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ReqUserDto } from '../auth/dto/req-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { getFilePath } from '../helpers/getFilePath';
 import { sanitizeUser } from '../helpers/sanitize.user';
 import { UserCreateDto } from './dto/create-user.dto';
 import { FindUserDto } from './dto/find-user.dto';
@@ -61,6 +66,19 @@ export class UserController {
 			status: 'success',
 			user,
 		};
+	}
+
+	@UseInterceptors(FileInterceptor('file'))
+	@Post('/avatar')
+	async uploadAvatar(
+		@UploadedFile() { destination, filename }: Express.Multer.File,
+		@Headers('host') host: string,
+		@Request() req: ReqUserDto,
+	) {
+		const avatar = getFilePath(host, destination, filename);
+		const updatedUser = await this.userService.updateUser(req.user.id, { avatar });
+
+		return { status: 'success', user: sanitizeUser(updatedUser) };
 	}
 
 	@Post('/')
