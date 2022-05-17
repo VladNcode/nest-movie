@@ -1,31 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { CommentResponse } from '@prisma/client';
+import { CommentResponse, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-
-import { CreateCommentResponse, GetCommentResponse, UpdateCommentResponse } from 'src/exports/interfaces';
 
 @Injectable()
 export class CommentResponseService {
 	constructor(private readonly prisma: PrismaService) {}
 
-	async getCommentResponse(id: number): Promise<CommentResponse | null> {
+	async getCommentResponse(id: CommentResponse['id']): Promise<CommentResponse | null> {
 		return this.prisma.commentResponse.findUnique({ where: { id } });
 	}
 
-	async getCommentResponses(params: GetCommentResponse): Promise<CommentResponse[]> {
+	async getCommentResponses(params: Prisma.CommentResponseFindManyArgs): Promise<CommentResponse[]> {
 		const { skip, take, cursor, where, orderBy } = params;
 		return this.prisma.commentResponse.findMany({ skip, take, cursor, where, orderBy });
 	}
 
-	async createCommentResponse({ userId, commentId, body }: CreateCommentResponse): Promise<CommentResponse> {
+	async createCommentResponse(data: Prisma.CommentResponseUncheckedCreateInput): Promise<CommentResponse> {
+		const { userId, commentId, body } = data;
 		return this.prisma.commentResponse.create({ data: { userId, commentId, body } });
 	}
 
-	async updateCommentResponse({ id, body }: UpdateCommentResponse): Promise<CommentResponse> {
+	async updateCommentResponse(data: {
+		body: Prisma.CommentResponseUpdateInput['body'];
+		id: CommentResponse['id'];
+	}): Promise<CommentResponse> {
+		const { id, body } = data;
 		return this.prisma.commentResponse.update({ where: { id }, data: { body } });
 	}
 
-	async deleteCommentResponse(id: number): Promise<CommentResponse> {
+	/**
+	 * Since our database uses ENUMs and has no direct refs, run a transaction
+	 * to delete likes which are related to the commentResponse
+	 * @param id - the commentResponse id
+	 * @returns deleted commentResponse
+	 */
+	async deleteCommentResponse(id: CommentResponse['id']): Promise<CommentResponse> {
 		const deletedLikes = this.prisma.like.deleteMany({
 			where: { AND: [{ likeType: 'commentResponse' }, { typeId: id }] },
 		});

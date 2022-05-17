@@ -21,9 +21,10 @@ import { Actor } from '@prisma/client';
 import { ACTOR_DELETED_SUCCESFULLY, ACTOR_NOT_FOUND } from './actor.constants';
 import { ActorService } from './actor.service';
 import { File, Formatted } from '../helpers';
+import { ResponseType } from '../helpers/formatter.helpers';
 
 import { ActorCreateDto, FindActorDto, UpdateActorDto } from 'src/exports/dto';
-import { ReturnActor, ReturnActors } from 'src/exports/interfaces';
+import { ReturnActor, ReturnActors, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('actors')
@@ -41,11 +42,10 @@ export class ActorController {
 			orderBy: { id: order },
 		});
 
-		return {
-			status: 'success',
-			data: { results: actors.length, actors },
-		};
+		return Formatted.response({ results: actors.length, actors });
 	}
+	// async getActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnType<ResponseType>> {
+	// async getActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnSingleRecord<'actor', Actor>> {
 
 	@Get('/:id')
 	async getActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnActor> {

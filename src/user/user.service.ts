@@ -1,66 +1,48 @@
-import { compare } from 'bcrypt';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
-import { USER_NOT_FOUND, EMAIL_OR_PASSWORD_IS_INCORRECT } from './user.constants';
-
-import { UserCreateDto } from 'src/exports/dto';
-import { GetUser, GetUsers } from 'src/exports/interfaces';
 
 @Injectable()
 export class UserService {
 	constructor(private readonly prisma: PrismaService) {}
 
-	async getUser(data: GetUser) {
+	async getUser(data: Prisma.UserWhereUniqueInput): Promise<User | null> {
 		return this.prisma.user.findUnique({ where: { ...data } });
 	}
 
-	async getUsers(params: GetUsers) {
+	async getUsers(params: Prisma.UserFindManyArgs): Promise<User[]> {
 		const { skip, take, cursor, where, orderBy } = params;
 		return this.prisma.user.findMany({ skip, take, cursor, where, orderBy });
 	}
 
-	async createUser(data: UserCreateDto) {
+	async createUser(data: Prisma.UserCreateInput): Promise<User> {
 		return await this.prisma.user.create({ data });
 	}
 
-	async updateUser(id: number, data: Prisma.UserUpdateInput): Promise<User> {
-		return this.prisma.user.update({ where: { id }, data });
+	async updateUser(data: { body: Prisma.UserUpdateInput; id: User['id'] }): Promise<User> {
+		const { id, body } = data;
+		return this.prisma.user.update({ where: { id }, data: body });
 	}
 
-	async updateUserEmail(oldEmail: string, newEmail: string): Promise<User> {
+	async updateUserEmail(data: { oldEmail: User['email']; newEmail: string }): Promise<User> {
+		const { oldEmail, newEmail } = data;
 		return this.prisma.user.update({ where: { email: oldEmail }, data: { email: newEmail } });
 	}
 
-	async updateUserPassword(email: string, password: string): Promise<User> {
+	async updateUserPassword(data: { email: User['email']; password: string }): Promise<User> {
+		const { email, password } = data;
 		return this.prisma.user.update({
 			where: { email },
 			data: { passwordHash: password, passwordChangedAt: new Date(Date.now() - 1000) },
 		});
 	}
 
-	async deleteUser(id: number): Promise<User> {
+	async deleteUser(id: User['id']): Promise<User> {
 		return this.prisma.user.delete({ where: { id } });
 	}
 
-	async deleteUserByEmail(email: string): Promise<User> {
+	async deleteUserByEmail(email: User['email']): Promise<User> {
 		return this.prisma.user.delete({ where: { email } });
-	}
-
-	async validateUser(username: string, password: string) {
-		const userExists = await this.getUser({ username });
-		if (!userExists) {
-			throw new UnauthorizedException(USER_NOT_FOUND);
-		}
-
-		const isCorrectPassword = await compare(password, userExists.passwordHash);
-		if (!isCorrectPassword) {
-			throw new UnauthorizedException(EMAIL_OR_PASSWORD_IS_INCORRECT);
-		}
-
-		return {
-			email: userExists.email,
-		};
 	}
 }

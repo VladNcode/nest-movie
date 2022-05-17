@@ -8,20 +8,23 @@ import {
 	Patch,
 	Post,
 	Request,
+	UnauthorizedException,
 	UseGuards,
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
+import { compare } from 'bcrypt';
 
 import { UserService } from '../user/user.service';
 import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './auth.constants';
+import { USER_NOT_FOUND, EMAIL_OR_PASSWORD_IS_INCORRECT } from '../user/user.constants';
 import { AuthService } from './auth.service';
 import { Roles } from '../decorators/roles.decorator';
 import { Formatted, hashPassword } from '../helpers';
 import { JwtAuthGuard, RolesGuard } from './guards';
 
 import { AuthDto, RegisterDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
-import { ReqUser, ReturnPasswordUpdate, ReturnSanitizedUser } from 'src/exports/interfaces';
+import { ReqUser, ReturnDeletedMessage, ReturnPasswordUpdate, ReturnSanitizedUser } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(RolesGuard)
@@ -39,8 +42,17 @@ export class AuthController {
 	@HttpCode(200)
 	@Post('login')
 	async login(@Body() { username, password }: AuthDto): Promise<{ access_token: string }> {
-		const user = await this.userService.validateUser(username, password);
-		return this.authService.login(user.email);
+		const userExists = await this.userService.getUser({ username });
+		if (!userExists) {
+			throw new UnauthorizedException(USER_NOT_FOUND);
+		}
+
+		const isCorrectPassword = await compare(password, userExists.passwordHash);
+		if (!isCorrectPassword) {
+			throw new UnauthorizedException(EMAIL_OR_PASSWORD_IS_INCORRECT);
+		}
+
+		return this.authService.login(userExists.email);
 	}
 
 	@Post('register')
@@ -62,7 +74,7 @@ export class AuthController {
 
 		console.log(oldEmail, newEmail);
 
-		const user = await this.userService.updateUserEmail(oldEmail, newEmail);
+		const user = await this.userService.updateUserEmail({ oldEmail, newEmail });
 		return Formatted.sanitizeUser(user);
 	}
 
@@ -70,7 +82,7 @@ export class AuthController {
 	@Patch('/updatePassword')
 	async updatePassword(@Request() req: ReqUser, @Body() dto: UpdateUserPasswordDto): Promise<ReturnPasswordUpdate> {
 		const hashedPassword = await hashPassword(dto.password);
-		await this.userService.updateUserPassword(req.user.email, hashedPassword);
+		await this.userService.updateUserPassword({ email: req.user.email, password: hashedPassword });
 
 		return Formatted.response({ message: PASSWORD_UPDATED_SUCCESSFULLY });
 	}
@@ -78,7 +90,7 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@Delete('/deleteMe')
 	@HttpCode(204)
-	async deleteMe(@Request() req: ReqUser): Promise<{ status: string; message: string }> {
+	async deleteMe(@Request() req: ReqUser): Promise<ReturnDeletedMessage> {
 		await this.userService.deleteUserByEmail(req.user.email);
 
 		return { status: 'success', message: ACCOUNT_DELETED_SUCCESSFULLY };

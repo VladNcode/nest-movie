@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Rating, RatingType } from '@prisma/client';
+import { Prisma, Rating, RatingType } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-
-import { CreateOrUpdateRatingDto, GetOrDeleteRatingDto } from 'src/exports/dto';
 
 @Injectable()
 export class RatingService {
 	constructor(private readonly prisma: PrismaService) {}
 
-	async getRating(data: GetOrDeleteRatingDto): Promise<Rating | null> {
+	async getRating(data: Prisma.RatingUserIdRatingTypeTypeIdCompoundUniqueInput): Promise<Rating | null> {
 		const { ratingType, typeId, userId } = data;
 
 		return this.prisma.rating.findUnique({
@@ -17,7 +15,7 @@ export class RatingService {
 		});
 	}
 
-	async createRating(data: CreateOrUpdateRatingDto): Promise<Rating> {
+	async createRating(data: Prisma.RatingUncheckedCreateInput): Promise<Rating> {
 		const { ratingType, typeId, userId, score } = data;
 
 		return this.prisma.rating.create({
@@ -25,7 +23,9 @@ export class RatingService {
 		});
 	}
 
-	async updateRating(data: CreateOrUpdateRatingDto): Promise<Rating> {
+	async updateRating(
+		data: Prisma.RatingUserIdRatingTypeTypeIdCompoundUniqueInput & { score: number },
+	): Promise<Rating> {
 		const { ratingType, typeId, userId, score } = data;
 
 		return this.prisma.rating.update({
@@ -34,7 +34,7 @@ export class RatingService {
 		});
 	}
 
-	async deleteRating(data: GetOrDeleteRatingDto): Promise<Rating> {
+	async deleteRating(data: Prisma.RatingUserIdRatingTypeTypeIdCompoundUniqueInput): Promise<Rating> {
 		const { ratingType, typeId, userId } = data;
 
 		return this.prisma.rating.delete({

@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Like, LikeType } from '@prisma/client';
+import { Like, LikeType, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { createFindUpdateLike } from 'src/exports/dto';
 
 @Injectable()
 export class LikeService {
 	constructor(private readonly prisma: PrismaService) {}
 
-	async findLike(data: createFindUpdateLike): Promise<Like | null> {
+	async findLike(data: Prisma.LikeUserIdLikeTypeTypeIdCompoundUniqueInput): Promise<Like | null> {
 		const { likeType, typeId, userId } = data;
 		return this.prisma.like.findUnique({
 			where: { userId_likeType_typeId: { likeType, typeId, userId } },
@@ -26,7 +25,7 @@ export class LikeService {
 		return count._count;
 	}
 
-	async createLike(data: createFindUpdateLike): Promise<Like> {
+	async createLike(data: Prisma.LikeUncheckedCreateInput): Promise<Like> {
 		const { likeType, typeId, userId } = data;
 
 		return this.prisma.like.create({
@@ -38,7 +37,7 @@ export class LikeService {
 		});
 	}
 
-	async deleteLike(data: createFindUpdateLike): Promise<Like> {
+	async deleteLike(data: Prisma.LikeUserIdLikeTypeTypeIdCompoundUniqueInput): Promise<Like> {
 		const { likeType, typeId, userId } = data;
 
 		return this.prisma.like.delete({

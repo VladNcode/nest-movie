@@ -3,13 +3,13 @@ import { Movie, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
-import { GetMovies } from 'src/exports/interfaces';
+import { ActorsFirstAndLastName } from 'src/exports/interfaces';
 
 @Injectable()
 export class MovieService {
 	constructor(private prisma: PrismaService) {}
 
-	async getMovie(id: number) {
+	async getMovie(id: number): Promise<(Movie & ActorsFirstAndLastName) | null> {
 		return this.prisma.movie.findUnique({
 			where: { id },
 			include: {
@@ -23,12 +23,12 @@ export class MovieService {
 		});
 	}
 
-	async getMovies(params: GetMovies): Promise<Movie[]> {
+	async getMovies(params: Prisma.MovieFindManyArgs): Promise<Movie[]> {
 		const { skip, take, cursor, where, orderBy } = params;
 		return this.prisma.movie.findMany({ skip, take, cursor, where, orderBy });
 	}
 
-	async createMovie(data: Prisma.MovieCreateInput, actors: string[]): Promise<Movie> {
+	async createMovie(data: Prisma.MovieCreateInput, actors: string[]) {
 		const { title, description, releaseDate } = data;
 
 		const actorsData = actors.map(actor => ({
@@ -54,10 +54,16 @@ export class MovieService {
 		});
 	}
 
-	async updateMovie(id: number, data: Prisma.MovieUpdateInput): Promise<Movie> {
+	async updateMovie(id: Movie['id'], data: Prisma.MovieUpdateInput): Promise<Movie> {
 		return this.prisma.movie.update({ where: { id }, data });
 	}
 
+	/**
+	 * Since our database uses ENUMs and has no direct refs, run a transaction
+	 * to delete: likes, ratings and comments which are related to the movie
+	 * @param id - the movie id
+	 * @returns deleted movie
+	 */
 	async deleteMovie(id: number): Promise<Movie> {
 		const deletedLikes = this.prisma.like.deleteMany({
 			where: { AND: [{ likeType: 'movie' }, { typeId: id }] },

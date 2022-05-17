@@ -75,7 +75,7 @@ export class UserController {
 		@Request() req: ReqUser,
 	) {
 		const avatar = File.getLink({ host, destination, filename });
-		const updatedUser = await this.userService.updateUser(req.user.id, { avatar });
+		const updatedUser = await this.userService.updateUser({ id: req.user.id, body: { avatar } });
 
 		return Formatted.sanitizeUser(updatedUser);
 	}
@@ -88,13 +88,11 @@ export class UserController {
 		});
 
 		return Formatted.sanitizeUser(user);
-
-		// return { status: 'success', user: sanitizeUser(user) };
 	}
 
 	@Patch('/')
 	async updateUser(@Request() req: ReqUser, @Body() dto: UpdateUserDto) {
-		const updatedUser = await this.userService.updateUser(req.user.id, dto);
+		const updatedUser = await this.userService.updateUser({ id: req.user.id, body: dto });
 		return Formatted.sanitizeUser(updatedUser);
 	}
 

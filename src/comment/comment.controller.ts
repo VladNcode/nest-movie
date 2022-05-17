@@ -13,8 +13,8 @@ import {
 	Request,
 	Patch,
 	Delete,
+	UnauthorizedException,
 } from '@nestjs/common';
-import { Comment } from '@prisma/client';
 
 import { JwtAuthGuard } from '../auth/guards/';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
@@ -27,7 +27,8 @@ import {
 import { CommentService } from './comment.service';
 
 import { CreateOrUpdateCommentDto, GetCommentsDto, UpdateCommentDto } from 'src/exports/dto';
-import { ReqUser } from 'src/exports/interfaces';
+import { ReqUser, ReturnComment, ReturnComments, ReturnDeletedMessage } from 'src/exports/interfaces';
+import { Formatted } from '../helpers';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
@@ -36,10 +37,7 @@ export class CommentController {
 	constructor(private readonly commentService: CommentService, private readonly prisma: PrismaService) {}
 
 	@Get('/')
-	async getComments(@Query() query: GetCommentsDto): Promise<{
-		status: string;
-		data: { results: number; comments: Comment[] };
-	}> {
+	async getComments(@Query() query: GetCommentsDto): Promise<ReturnComments> {
 		const { skip, take, commentType, typeId, userId, id, order } = query;
 
 		const comments = await this.commentService.getComments({
@@ -49,33 +47,23 @@ export class CommentController {
 			orderBy: { id: order },
 		});
 
-		return {
-			status: 'success',
-			data: {
-				results: comments.length,
-				comments,
-			},
-		};
+		return { status: 'success', data: { results: comments.length, comments } };
 	}
 
 	@Get('/:id')
-	async getComment(@Param('id', ParseIntPipe) id: number): Promise<{
-		status: string;
-		comment: Comment;
-	}> {
+	async getComment(@Param('id', ParseIntPipe) id: number): Promise<ReturnComment> {
 		const comment = await this.commentService.getComment(id);
 		if (!comment) {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
-
-		return { status: 'success', comment };
+		return Formatted.response({ comment });
 	}
 
 	@Post('/')
 	async createComment(
 		@Request() req: ReqUser,
 		@Body() { commentType, typeId, body }: CreateOrUpdateCommentDto,
-	): Promise<{ status: string; data: Comment }> {
+	): Promise<ReturnComment> {
 		const record = await this.prisma.checkIfRecordExists(commentType, typeId);
 
 		if (!record) {
@@ -88,7 +76,8 @@ export class CommentController {
 			body,
 			userId: req.user.id,
 		});
-		return { status: 'success', data: comment };
+
+		return Formatted.response({ comment });
 	}
 
 	@Patch('/:id')
@@ -96,7 +85,7 @@ export class CommentController {
 		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 		@Body() { body }: UpdateCommentDto,
-	): Promise<{ status: string; review?: Comment; message?: string }> {
+	): Promise<ReturnComment> {
 		const comment = await this.commentService.getComment(id);
 
 		if (!comment) {
@@ -105,17 +94,14 @@ export class CommentController {
 
 		if (comment?.userId === req.user.id) {
 			const updatedComment = await this.commentService.updateComment({ id, body });
-			return { status: 'success', review: updatedComment };
+			return Formatted.response({ comment: updatedComment });
 		}
 
-		return { status: 'failure', message: THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER };
+		throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 	}
 
 	@Delete('/:id')
-	async deleteComment(
-		@Request() req: ReqUser,
-		@Param('id', ParseIntPipe) id: number,
-	): Promise<{ status: string; message: string }> {
+	async deleteComment(@Request() req: ReqUser, @Param('id', ParseIntPipe) id: number): Promise<ReturnDeletedMessage> {
 		const comment = await this.commentService.getComment(id);
 
 		if (!comment) {
@@ -127,6 +113,6 @@ export class CommentController {
 			return { status: 'success', message: COMMENT_DELETED_SUCCESFULLY };
 		}
 
-		return { status: 'success', message: THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER };
+		throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 	}
 }

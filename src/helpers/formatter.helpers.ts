@@ -1,9 +1,9 @@
 import { User } from '@prisma/client';
 
-type Response = <T extends object>(data: T) => { status: string; data: T };
+export type ResponseType = <T extends object>(data: T) => { status: string; data: T };
 
 class FormattedReturn {
-	response: Response = data => {
+	response: ResponseType = data => {
 		return { status: 'success', data };
 	};
 

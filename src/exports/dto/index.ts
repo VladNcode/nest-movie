@@ -13,7 +13,6 @@ export * from '../../comment-response/dto/create-comment-response.dto';
 export * from '../../comment-response/dto/get-comment-response.dto';
 export * from '../../comment-response/dto/update-comment-response.dto';
 
-export * from '../../like/dto/create-find-update-like.dto';
 export * from '../../like/dto/create-like.dto';
 
 export * from '../../movie/dto/create-movie.dto';
