@@ -3,8 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { UserService } from '../user/user.service';
-import { hashPassword } from '../helpers/hashPassword';
-import { sanitizeUser } from '../helpers/sanitize.user';
+import { hashPassword } from '../helpers/hashPassword.helpers';
 
 @Injectable()
 export class AuthService {
@@ -23,14 +22,12 @@ export class AuthService {
 		const { username, email, bio } = dto;
 		const passwordHash = await hashPassword(dto.password);
 
-		const user = await this.userService.createUser({
+		return this.userService.createUser({
 			username,
 			email,
 			passwordHash,
 			bio,
 			passwordChangedAt: new Date(Date.now() - 1000),
 		});
-
-		return sanitizeUser(user);
 	}
 }

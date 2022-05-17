@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	BadRequestException,
 	Body,
@@ -14,8 +13,7 @@ import {
 	ValidationPipe,
 } from '@nestjs/common';
 import { Roles } from '../decorators/roles.decorator';
-import { hashPassword } from '../helpers/hashPassword';
-import { sanitizeUser } from '../helpers/sanitize.user';
+import { Formatted, hashPassword } from '../helpers';
 import { UpdateUserEmailDto } from '../user/dto/update-user-email.dto';
 import { UpdateUserPasswordDto } from '../user/dto/update-user-password.dto';
 import { UserService } from '../user/user.service';
@@ -51,7 +49,7 @@ export class AuthController {
 		}
 
 		const user = await this.authService.signup(dto);
-		return { status: 'success', user };
+		return Formatted.sanitizeUser(user);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -70,17 +68,16 @@ export class AuthController {
 		console.log(oldEmail, newEmail);
 
 		const user = await this.userService.updateUserEmail(oldEmail, newEmail);
-		return { status: 'success', user: sanitizeUser(user) };
+		return Formatted.sanitizeUser(user);
 	}
 
 	@UseGuards(JwtAuthGuard)
 	@Patch('/updatePassword')
 	async updatePassword(@Request() req: ReqUserDto, @Body() dto: UpdateUserPasswordDto) {
 		const hashedPassword = await hashPassword(dto.password);
+		await this.userService.updateUserPassword(req.user.email, hashedPassword);
 
-		const user = await this.userService.updateUserPassword(req.user.email, hashedPassword);
-
-		return { status: 'success', message: PASSWORD_UPDATED_SUCCESSFULLY, user: sanitizeUser(user) };
+		return Formatted.response({ message: PASSWORD_UPDATED_SUCCESSFULLY });
 	}
 
 	@UseGuards(JwtAuthGuard)

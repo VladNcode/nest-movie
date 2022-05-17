@@ -16,7 +16,7 @@ import {
 	Headers,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { getFilePath } from '../helpers/getFilePath';
+import { File } from '../helpers/file.helpers';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { FindMovieDto } from './dto/find-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -77,8 +77,8 @@ export class MovieController {
 		@Headers('host') host: string,
 	) {
 		const posters: string[] = [];
-		files.forEach(file => {
-			posters.push(getFilePath(host, file.destination, file.filename));
+		files.forEach(({ destination, filename }) => {
+			posters.push(File.getLink({ host, destination, filename }));
 		});
 
 		const updatedMovie = await this.movieService.updateMovie(id, { posters });

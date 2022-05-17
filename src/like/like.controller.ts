@@ -63,7 +63,7 @@ export class LikeController {
 			};
 		}
 
-		return { status: 'failure', message: COULD_NOT_COUNT_LIKES };
+		throw new NotFoundException(COULD_NOT_COUNT_LIKES);
 	}
 
 	@Post('/')

@@ -20,8 +20,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ReqUserDto } from '../auth/dto/req-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { getFilePath } from '../helpers/getFilePath';
-import { sanitizeUser } from '../helpers/sanitize.user';
+import { File } from '../helpers/file.helpers';
+import { Formatted } from '../helpers/formatter.helpers';
 import { UserCreateDto } from './dto/create-user.dto';
 import { FindUserDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -75,10 +75,10 @@ export class UserController {
 		@Headers('host') host: string,
 		@Request() req: ReqUserDto,
 	) {
-		const avatar = getFilePath(host, destination, filename);
+		const avatar = File.getLink({ host, destination, filename });
 		const updatedUser = await this.userService.updateUser(req.user.id, { avatar });
 
-		return { status: 'success', user: sanitizeUser(updatedUser) };
+		return Formatted.sanitizeUser(updatedUser);
 	}
 
 	@Post('/')
@@ -88,13 +88,15 @@ export class UserController {
 			passwordChangedAt: new Date(Date.now() - 1000),
 		});
 
-		return { status: 'success', user: sanitizeUser(user) };
+		return Formatted.sanitizeUser(user);
+
+		// return { status: 'success', user: sanitizeUser(user) };
 	}
 
 	@Patch('/')
 	async updateUser(@Request() req: ReqUserDto, @Body() dto: UpdateUserDto) {
 		const updatedUser = await this.userService.updateUser(req.user.id, dto);
-		return { status: 'success', data: sanitizeUser(updatedUser) };
+		return Formatted.sanitizeUser(updatedUser);
 	}
 
 	@Delete('/:id')

@@ -1,17 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Actor, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { GetActors } from './interfaces/get-actors.interface';
 
 @Injectable()
 export class ActorService {
 	constructor(private prisma: PrismaService) {}
 
-	async getActor(id: number): Promise<Actor | null> {
+	async getActor(id: Actor['id']): Promise<Actor | null> {
 		return this.prisma.actor.findUnique({ where: { id } });
 	}
 
-	async getActors(params: GetActors): Promise<Actor[]> {
+	async getActors(params: Prisma.ActorFindManyArgs): Promise<Actor[]> {
 		const { skip, take, cursor, where, orderBy } = params;
 		return this.prisma.actor.findMany({ skip, take, cursor, where, orderBy });
 	}
@@ -20,11 +19,17 @@ export class ActorService {
 		return this.prisma.actor.create({ data });
 	}
 
-	async updateActor(id: number, data: Prisma.ActorUpdateInput): Promise<Actor> {
+	async updateActor(id: Actor['id'], data: Prisma.ActorUpdateInput): Promise<Actor> {
 		return this.prisma.actor.update({ where: { id }, data });
 	}
 
-	async deleteActor(id: number): Promise<Actor> {
+	/**
+	 * Since our database uses ENUMs and has no direct refs, run a transaction
+	 * to delete: likes, rating and comments which are related to the actor
+	 * @param id - the actor id
+	 * @returns deleted actor
+	 */
+	async deleteActor(id: Actor['id']): Promise<Actor> {
 		const deletedLikes = this.prisma.like.deleteMany({
 			where: { AND: [{ likeType: 'actor' }, { typeId: id }] },
 		});
