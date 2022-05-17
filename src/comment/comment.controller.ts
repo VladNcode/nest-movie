@@ -15,8 +15,8 @@ import {
 	Delete,
 } from '@nestjs/common';
 import { Comment } from '@prisma/client';
-import { ReqUserDto } from '../auth/dto/req-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+import { JwtAuthGuard } from '../auth/guards/';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -25,18 +25,14 @@ import {
 	THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER,
 } from './comment.constants';
 import { CommentService } from './comment.service';
-import { CreateOrUpdateCommentDto } from './dto/create-or-update-comment.dto';
-import { GetCommentsDto } from './dto/get-comments.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
+
+import { ReqUserDto, CreateOrUpdateCommentDto, GetCommentsDto, UpdateCommentDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
 @Controller('comments')
 export class CommentController {
-	constructor(
-		private readonly commentService: CommentService,
-		private readonly prisma: PrismaService,
-	) {}
+	constructor(private readonly commentService: CommentService, private readonly prisma: PrismaService) {}
 
 	@Get('/')
 	async getComments(@Query() query: GetCommentsDto): Promise<{

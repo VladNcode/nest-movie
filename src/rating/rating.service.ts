@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Rating, RatingType } from '@prisma/client';
+
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrUpdateRatingDto } from './dto/create-or-update-rating.dto';
-import { GetOrDeleteRatingDto } from './dto/delete-rating.dto';
+
+import { CreateOrUpdateRatingDto, GetOrDeleteRatingDto } from 'src/exports/dto';
 
 @Injectable()
 export class RatingService {

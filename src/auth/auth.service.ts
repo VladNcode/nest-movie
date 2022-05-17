@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from './dto/register.dto';
+
 import { UserService } from '../user/user.service';
-import { hashPassword } from '../helpers/hashPassword.helpers';
+import { hashPassword } from '../helpers';
+
+import { RegisterDto } from 'src/exports/dto';
 
 @Injectable()
 export class AuthService {

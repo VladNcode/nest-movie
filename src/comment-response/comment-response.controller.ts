@@ -15,17 +15,16 @@ import {
 	Delete,
 } from '@nestjs/common';
 import { CommentResponse } from '@prisma/client';
-import { ReqUserDto } from '../auth/dto/req-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+import { JwtAuthGuard } from '../auth/guards';
 import {
 	COMMENT_DELETED_SUCCESFULLY,
 	COMMENT_WITH_THIS_ID_DOES_NOT_EXIST,
 	THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER,
 } from '../comment/comment.constants';
 import { CommentResponseService } from './comment-response.service';
-import { CreateCommentResponseDto } from './dto/create-comment-response.dto';
-import { GetCommentResponseDto } from './dto/get-comment-response.dto';
-import { UpdateCommentResponseDto } from './dto/update-comment-response.dto';
+
+import { ReqUserDto, CreateCommentResponseDto, GetCommentResponseDto, UpdateCommentResponseDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)

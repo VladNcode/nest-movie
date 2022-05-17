@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Review } from '@prisma/client';
+
 import { PrismaService } from '../prisma/prisma.service';
-import { ReviewCreateDto } from './dto/create-review.dto';
-import { GetReviews } from './interfaces/get-reviews.interface';
+
+import { ReviewCreateDto } from 'src/exports/dto';
+import { GetReviews } from 'src/exports/interfaces';
 
 @Injectable()
 export class ReviewService {

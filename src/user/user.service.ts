@@ -1,17 +1,18 @@
 import { compare } from 'bcrypt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+
 import { PrismaService } from '../prisma/prisma.service';
-import { UserCreateDto } from './dto/create-user.dto';
-import { GetUsers } from './interfaces/get-users.interface';
 import { Prisma, User } from '@prisma/client';
 import { USER_NOT_FOUND, EMAIL_OR_PASSWORD_IS_INCORRECT } from './user.constants';
-import { IGetUser } from './interfaces/get-user.interface';
+
+import { UserCreateDto } from 'src/exports/dto';
+import { GetUser, GetUsers } from 'src/exports/interfaces';
 
 @Injectable()
 export class UserService {
 	constructor(private readonly prisma: PrismaService) {}
 
-	async getUser(data: IGetUser) {
+	async getUser(data: GetUser) {
 		return this.prisma.user.findUnique({ where: { ...data } });
 	}
 

@@ -17,15 +17,13 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Actor } from '@prisma/client';
-import { File } from '../helpers/file.helpers';
-import { Formatted } from '../helpers/formatter.helpers';
+
 import { ACTOR_DELETED_SUCCESFULLY, ACTOR_NOT_FOUND } from './actor.constants';
 import { ActorService } from './actor.service';
-import { ActorCreateDto } from './dto/create-actor.dto';
-import { FindActorDto } from './dto/find-actor.dto';
-import { UpdateActorDto } from './dto/update-actor.dto';
-import { ReturnActor } from './interfaces/return-actor.interface';
-import { ReturnActors } from './interfaces/return-actors.interface';
+import { File, Formatted } from '../helpers';
+
+import { ActorCreateDto, FindActorDto, UpdateActorDto } from 'src/exports/dto';
+import { ReturnActor, ReturnActors } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('actors')
@@ -80,10 +78,7 @@ export class ActorController {
 	}
 
 	@Patch('/:id')
-	async updateActor(
-		@Param('id', ParseIntPipe) id: Actor['id'],
-		@Body() dto: UpdateActorDto,
-	): Promise<ReturnActor> {
+	async updateActor(@Param('id', ParseIntPipe) id: Actor['id'], @Body() dto: UpdateActorDto): Promise<ReturnActor> {
 		const updatedActor = await this.actorService.updateActor(id, dto);
 
 		return Formatted.response({ actor: updatedActor });

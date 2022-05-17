@@ -12,27 +12,21 @@ import {
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
-import { Roles } from '../decorators/roles.decorator';
-import { Formatted, hashPassword } from '../helpers';
-import { UpdateUserEmailDto } from '../user/dto/update-user-email.dto';
-import { UpdateUserPasswordDto } from '../user/dto/update-user-password.dto';
+
 import { UserService } from '../user/user.service';
 import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './auth.constants';
 import { AuthService } from './auth.service';
-import { AuthDto } from './dto/auth.dto';
-import { RegisterDto } from './dto/register.dto';
-import { ReqUserDto } from './dto/req-user.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { RolesGuard } from './guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { Formatted, hashPassword } from '../helpers';
+import { JwtAuthGuard, RolesGuard } from './guards';
+
+import { AuthDto, RegisterDto, ReqUserDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(RolesGuard)
 @Controller('auth')
 export class AuthController {
-	constructor(
-		private readonly userService: UserService,
-		private readonly authService: AuthService,
-	) {}
+	constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
 
 	@HttpCode(200)
 	@Post('login')

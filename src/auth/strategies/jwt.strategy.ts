@@ -8,10 +8,7 @@ import { LOGIN_OR_PASSWORD_WAS_CHANGED } from '../auth.constants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-	constructor(
-		private readonly configService: ConfigService,
-		private readonly userService: UserService,
-	) {
+	constructor(private readonly configService: ConfigService, private readonly userService: UserService) {
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			ignoreExpiration: false,
@@ -26,10 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 			throw new UnauthorizedException(LOGIN_OR_PASSWORD_WAS_CHANGED);
 		}
 
-		const passwordChangedAt = parseInt(
-			(userExist.passwordChangedAt.getTime() / 1000).toString(),
-			10,
-		);
+		const passwordChangedAt = parseInt((userExist.passwordChangedAt.getTime() / 1000).toString(), 10);
 
 		if (passwordChangedAt > iat) {
 			throw new UnauthorizedException(LOGIN_OR_PASSWORD_WAS_CHANGED);

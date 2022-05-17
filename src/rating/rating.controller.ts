@@ -13,29 +13,21 @@ import {
 	Get,
 } from '@nestjs/common';
 import { Rating } from '@prisma/client';
-import { ReqUserDto } from '../auth/dto/req-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+import { JwtAuthGuard } from '../auth/guards/';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrUpdateRatingDto } from './dto/create-or-update-rating.dto';
-import { GetOrDeleteRatingDto } from './dto/delete-rating.dto';
-import { FindRatingAverageDto } from './dto/find-average-rating.dto';
-import { UserAlreadyRated } from './interfaces/user-already-rated.interface';
-import {
-	COULD_NOT_FIND_AVERAGE,
-	RATING_DELETED_SUCCESSFULLY,
-	USER_HAVE_NOT_RATED_YET,
-} from './rating.constants';
+import { COULD_NOT_FIND_AVERAGE, RATING_DELETED_SUCCESSFULLY, USER_HAVE_NOT_RATED_YET } from './rating.constants';
 import { RatingService } from './rating.service';
+
+import { ReqUserDto, CreateOrUpdateRatingDto, GetOrDeleteRatingDto, FindRatingAverageDto } from 'src/exports/dto';
+import { UserAlreadyRated } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
 @Controller('rating')
 export class RatingController {
-	constructor(
-		private readonly ratingService: RatingService,
-		private readonly prisma: PrismaService,
-	) {}
+	constructor(private readonly ratingService: RatingService, private readonly prisma: PrismaService) {}
 
 	@Get('/')
 	async userAlreadyRated(

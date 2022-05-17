@@ -12,13 +12,14 @@ import {
 	Get,
 } from '@nestjs/common';
 import { Like } from '@prisma/client';
-import { ReqUserDto } from '../auth/dto/req-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+import { JwtAuthGuard } from '../auth/guards';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrDeleteLikeDto } from './dto/create-like.dto';
-import { CountLikes } from './interfaces/count-likes.interface';
 import { COULD_NOT_COUNT_LIKES, ITEM_NOT_FOUND, LIKE_DELETED_SUCCESSFULLY } from './like.constants';
 import { LikeService } from './like.service';
+
+import { CountLikes } from 'src/exports/interfaces';
+import { ReqUserDto, CreateOrDeleteLikeDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)

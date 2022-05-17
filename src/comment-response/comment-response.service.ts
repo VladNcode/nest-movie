@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { CommentResponse } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCommentResponse } from './interfaces/create-comment-response.interface';
-import { GetCommentResponse } from './interfaces/get-comment-response.intefrace';
-import { UpdateCommentResponse } from './interfaces/update-comment-response.interface';
+
+import { CreateCommentResponse, GetCommentResponse, UpdateCommentResponse } from 'src/exports/interfaces';
 
 @Injectable()
 export class CommentResponseService {
@@ -18,11 +17,7 @@ export class CommentResponseService {
 		return this.prisma.commentResponse.findMany({ skip, take, cursor, where, orderBy });
 	}
 
-	async createCommentResponse({
-		userId,
-		commentId,
-		body,
-	}: CreateCommentResponse): Promise<CommentResponse> {
+	async createCommentResponse({ userId, commentId, body }: CreateCommentResponse): Promise<CommentResponse> {
 		return this.prisma.commentResponse.create({ data: { userId, commentId, body } });
 	}
 

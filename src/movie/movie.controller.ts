@@ -16,12 +16,12 @@ import {
 	Headers,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { File } from '../helpers/file.helpers';
-import { CreateMovieDto } from './dto/create-movie.dto';
-import { FindMovieDto } from './dto/find-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
+
+import { File } from '../helpers/';
 import { MOVIE_NOT_FOUND } from './movie.constants';
 import { MovieService } from './movie.service';
+
+import { CreateMovieDto, FindMovieDto, UpdateMovieDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('movies')
@@ -90,10 +90,7 @@ export class MovieController {
 		const { title, description, releaseDate, actors } = dto;
 
 		const date = new Date(releaseDate);
-		const movie = await this.movieService.createMovie(
-			{ title, description, releaseDate: date },
-			actors,
-		);
+		const movie = await this.movieService.createMovie({ title, description, releaseDate: date }, actors);
 
 		return { status: 'success', data: movie };
 	}

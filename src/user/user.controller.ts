@@ -18,15 +18,13 @@ import {
 	Headers,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ReqUserDto } from '../auth/dto/req-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { File } from '../helpers/file.helpers';
-import { Formatted } from '../helpers/formatter.helpers';
-import { UserCreateDto } from './dto/create-user.dto';
-import { FindUserDto } from './dto/find-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+
+import { JwtAuthGuard } from '../auth/guards/';
+import { Formatted, File } from '../helpers/';
 import { USER_NOT_FOUND } from './user.constants';
 import { UserService } from './user.service';
+
+import { ReqUserDto, UserCreateDto, FindUserDto, UpdateUserDto } from 'src/exports/dto';
 
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ transform: true }))

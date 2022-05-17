@@ -15,18 +15,17 @@ import {
 	Query,
 } from '@nestjs/common';
 import { Review } from '@prisma/client';
-import { ReqUserDto } from '../auth/dto/req-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ReviewCreateDto } from './dto/create-review.dto';
-import { GetReviewsDto } from './dto/get-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
-import { ReturnUpdatedReview } from './interfaces/return-updated-review';
+
+import { JwtAuthGuard } from '../auth/guards/';
 import {
 	REVIEW_DELETED,
 	REVIEW_WITH_THIS_ID_DOES_NOT_EXIST,
 	THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER,
 } from './review.constants';
 import { ReviewService } from './review.service';
+
+import { ReqUserDto, ReviewCreateDto, GetReviewsDto, UpdateReviewDto } from 'src/exports/dto';
+import { ReturnUpdatedReview } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)

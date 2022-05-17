@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Like, LikeType } from '@prisma/client';
+
 import { PrismaService } from '../prisma/prisma.service';
-import { createFindUpdateLike } from './dto/create-find-update-like.dto';
+import { createFindUpdateLike } from 'src/exports/dto';
 
 @Injectable()
 export class LikeService {
