@@ -20,7 +20,8 @@ import { Roles } from '../decorators/roles.decorator';
 import { Formatted, hashPassword } from '../helpers';
 import { JwtAuthGuard, RolesGuard } from './guards';
 
-import { AuthDto, RegisterDto, ReqUserDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
+import { AuthDto, RegisterDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
+import { ReqUser, ReturnPasswordUpdate, ReturnSanitizedUser } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(RolesGuard)
@@ -28,15 +29,22 @@ import { AuthDto, RegisterDto, ReqUserDto, UpdateUserEmailDto, UpdateUserPasswor
 export class AuthController {
 	constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
 
+	@UseGuards(JwtAuthGuard)
+	@Roles('admin')
+	@Get('test')
+	async test(@Request() req: ReqUser) {
+		return { status: 'success', email: req.user.email, id: req.user.id };
+	}
+
 	@HttpCode(200)
 	@Post('login')
-	async login(@Body() { username, password }: AuthDto) {
+	async login(@Body() { username, password }: AuthDto): Promise<{ access_token: string }> {
 		const user = await this.userService.validateUser(username, password);
 		return this.authService.login(user.email);
 	}
 
 	@Post('register')
-	async register(@Body() dto: RegisterDto) {
+	async register(@Body() dto: RegisterDto): Promise<ReturnSanitizedUser> {
 		const existingUser = await this.userService.getUser({ username: dto.username });
 		if (existingUser) {
 			throw new BadRequestException('User already exist');
@@ -47,15 +55,8 @@ export class AuthController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Roles('admin')
-	@Get('test')
-	async test(@Request() req: ReqUserDto) {
-		return { status: 'success', email: req.user.email, id: req.user.id };
-	}
-
-	@UseGuards(JwtAuthGuard)
 	@Patch('/updateEmail')
-	async updateEmail(@Request() req: ReqUserDto, @Body() dto: UpdateUserEmailDto) {
+	async updateEmail(@Request() req: ReqUser, @Body() dto: UpdateUserEmailDto): Promise<ReturnSanitizedUser> {
 		const oldEmail = req.user.email;
 		const newEmail = dto.email;
 
@@ -67,7 +68,7 @@ export class AuthController {
 
 	@UseGuards(JwtAuthGuard)
 	@Patch('/updatePassword')
-	async updatePassword(@Request() req: ReqUserDto, @Body() dto: UpdateUserPasswordDto) {
+	async updatePassword(@Request() req: ReqUser, @Body() dto: UpdateUserPasswordDto): Promise<ReturnPasswordUpdate> {
 		const hashedPassword = await hashPassword(dto.password);
 		await this.userService.updateUserPassword(req.user.email, hashedPassword);
 
@@ -77,7 +78,7 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@Delete('/deleteMe')
 	@HttpCode(204)
-	async deleteMe(@Request() req: ReqUserDto) {
+	async deleteMe(@Request() req: ReqUser): Promise<{ status: string; message: string }> {
 		await this.userService.deleteUserByEmail(req.user.email);
 
 		return { status: 'success', message: ACCOUNT_DELETED_SUCCESSFULLY };

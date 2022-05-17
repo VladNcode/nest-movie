@@ -26,7 +26,8 @@ import {
 } from './comment.constants';
 import { CommentService } from './comment.service';
 
-import { ReqUserDto, CreateOrUpdateCommentDto, GetCommentsDto, UpdateCommentDto } from 'src/exports/dto';
+import { CreateOrUpdateCommentDto, GetCommentsDto, UpdateCommentDto } from 'src/exports/dto';
+import { ReqUser } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
@@ -72,7 +73,7 @@ export class CommentController {
 
 	@Post('/')
 	async createComment(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() { commentType, typeId, body }: CreateOrUpdateCommentDto,
 	): Promise<{ status: string; data: Comment }> {
 		const record = await this.prisma.checkIfRecordExists(commentType, typeId);
@@ -92,7 +93,7 @@ export class CommentController {
 
 	@Patch('/:id')
 	async updateComment(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 		@Body() { body }: UpdateCommentDto,
 	): Promise<{ status: string; review?: Comment; message?: string }> {
@@ -103,7 +104,7 @@ export class CommentController {
 		}
 
 		if (comment?.userId === req.user.id) {
-			const updatedComment = await this.commentService.updateComment(id, body);
+			const updatedComment = await this.commentService.updateComment({ id, body });
 			return { status: 'success', review: updatedComment };
 		}
 
@@ -112,7 +113,7 @@ export class CommentController {
 
 	@Delete('/:id')
 	async deleteComment(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 	): Promise<{ status: string; message: string }> {
 		const comment = await this.commentService.getComment(id);

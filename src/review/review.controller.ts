@@ -24,8 +24,8 @@ import {
 } from './review.constants';
 import { ReviewService } from './review.service';
 
-import { ReqUserDto, ReviewCreateDto, GetReviewsDto, UpdateReviewDto } from 'src/exports/dto';
-import { ReturnUpdatedReview } from 'src/exports/interfaces';
+import { ReviewCreateDto, GetReviewsDto, UpdateReviewDto } from 'src/exports/dto';
+import { ReturnUpdatedReview, ReqUser } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
@@ -71,7 +71,7 @@ export class ReviewController {
 
 	@Post('/')
 	async createReview(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() { movieId, body }: ReviewCreateDto,
 	): Promise<{ status: string; data: Review }> {
 		const review = await this.reviewService.createReview({ movieId, body, userId: req.user.id });
@@ -80,7 +80,7 @@ export class ReviewController {
 
 	@Patch('/:id')
 	async updateReview(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 		@Body() { body }: UpdateReviewDto,
 	): Promise<ReturnUpdatedReview> {
@@ -100,7 +100,7 @@ export class ReviewController {
 
 	@Delete('/:id')
 	async deleteReview(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 	): Promise<{ status: string; message: string }> {
 		const review = await this.reviewService.getReview(id);

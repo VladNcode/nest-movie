@@ -5,12 +5,13 @@ import { UserService } from '../user/user.service';
 import { hashPassword } from '../helpers';
 
 import { RegisterDto } from 'src/exports/dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
 	constructor(private readonly jwtService: JwtService, private readonly userService: UserService) {}
 
-	async login(email: string) {
+	async login(email: User['email']): Promise<{ access_token: string }> {
 		const user = await this.userService.getUser({ email });
 		const payload = { email: user?.email, id: user?.id, role: user?.role };
 
@@ -19,7 +20,7 @@ export class AuthService {
 		};
 	}
 
-	async signup(dto: RegisterDto) {
+	async signup(dto: RegisterDto): Promise<User> {
 		const { username, email, bio } = dto;
 		const passwordHash = await hashPassword(dto.password);
 

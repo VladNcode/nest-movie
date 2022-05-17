@@ -4,7 +4,6 @@ export * from '../../actor/dto/update-actor.dto';
 
 export * from '../../auth/dto/auth.dto';
 export * from '../../auth/dto/register.dto';
-export * from '../../auth/dto/req-user.dto';
 
 export * from '../../comment/dto/create-or-update-comment.dto';
 export * from '../../comment/dto/get-comments.dto';

@@ -24,7 +24,8 @@ import {
 } from '../comment/comment.constants';
 import { CommentResponseService } from './comment-response.service';
 
-import { ReqUserDto, CreateCommentResponseDto, GetCommentResponseDto, UpdateCommentResponseDto } from 'src/exports/dto';
+import { CreateCommentResponseDto, GetCommentResponseDto, UpdateCommentResponseDto } from 'src/exports/dto';
+import { ReqUser } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
@@ -71,7 +72,7 @@ export class CommentResponseController {
 
 	@Post('/')
 	async createCommentResponse(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() { commentId, body }: CreateCommentResponseDto,
 	): Promise<{ status: string; comment: CommentResponse }> {
 		const comment = await this.commentResponseService.createCommentResponse({
@@ -84,7 +85,7 @@ export class CommentResponseController {
 
 	@Patch('/:id')
 	async updateCommentResponse(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 		@Body() { body }: UpdateCommentResponseDto,
 	): Promise<{ status: string; comment?: CommentResponse; message?: string }> {
@@ -104,7 +105,7 @@ export class CommentResponseController {
 
 	@Delete('/:id')
 	async deleteCommentResponse(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 	): Promise<{ status: string; message: string }> {
 		const comment = await this.commentResponseService.getCommentResponse(id);

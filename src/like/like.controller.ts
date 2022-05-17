@@ -18,8 +18,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { COULD_NOT_COUNT_LIKES, ITEM_NOT_FOUND, LIKE_DELETED_SUCCESSFULLY } from './like.constants';
 import { LikeService } from './like.service';
 
-import { CountLikes } from 'src/exports/interfaces';
-import { ReqUserDto, CreateOrDeleteLikeDto } from 'src/exports/dto';
+import { CountLikes, ReqUser } from 'src/exports/interfaces';
+import { CreateOrDeleteLikeDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
@@ -29,7 +29,7 @@ export class LikeController {
 
 	@Get('/userLike')
 	async userAlreadyLiked(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<{ status: string; userLiked: boolean }> {
 		const record = await this.prisma.checkIfRecordExists(likeType, typeId);
@@ -69,7 +69,7 @@ export class LikeController {
 
 	@Post('/')
 	async create(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<{ status: string; like: Like }> {
 		const record = await this.prisma.checkIfRecordExists(likeType, typeId);
@@ -86,7 +86,7 @@ export class LikeController {
 	@Delete('/')
 	@HttpCode(204)
 	async delete(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<{ status: string; message: string }> {
 		await this.likeService.deleteLike({ likeType, typeId, userId: req.user.id });

@@ -24,7 +24,8 @@ import { Formatted, File } from '../helpers/';
 import { USER_NOT_FOUND } from './user.constants';
 import { UserService } from './user.service';
 
-import { ReqUserDto, UserCreateDto, FindUserDto, UpdateUserDto } from 'src/exports/dto';
+import { UserCreateDto, FindUserDto, UpdateUserDto } from 'src/exports/dto';
+import { ReqUser } from 'src/exports/interfaces';
 
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -71,7 +72,7 @@ export class UserController {
 	async uploadAvatar(
 		@UploadedFile() { destination, filename }: Express.Multer.File,
 		@Headers('host') host: string,
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 	) {
 		const avatar = File.getLink({ host, destination, filename });
 		const updatedUser = await this.userService.updateUser(req.user.id, { avatar });
@@ -92,7 +93,7 @@ export class UserController {
 	}
 
 	@Patch('/')
-	async updateUser(@Request() req: ReqUserDto, @Body() dto: UpdateUserDto) {
+	async updateUser(@Request() req: ReqUser, @Body() dto: UpdateUserDto) {
 		const updatedUser = await this.userService.updateUser(req.user.id, dto);
 		return Formatted.sanitizeUser(updatedUser);
 	}

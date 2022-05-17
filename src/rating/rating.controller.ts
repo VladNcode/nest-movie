@@ -20,8 +20,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { COULD_NOT_FIND_AVERAGE, RATING_DELETED_SUCCESSFULLY, USER_HAVE_NOT_RATED_YET } from './rating.constants';
 import { RatingService } from './rating.service';
 
-import { ReqUserDto, CreateOrUpdateRatingDto, GetOrDeleteRatingDto, FindRatingAverageDto } from 'src/exports/dto';
-import { UserAlreadyRated } from 'src/exports/interfaces';
+import { CreateOrUpdateRatingDto, GetOrDeleteRatingDto, FindRatingAverageDto } from 'src/exports/dto';
+import { UserAlreadyRated, ReqUser } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
@@ -31,7 +31,7 @@ export class RatingController {
 
 	@Get('/')
 	async userAlreadyRated(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() { ratingType, typeId }: GetOrDeleteRatingDto,
 	): Promise<UserAlreadyRated> {
 		const record = await this.prisma.checkIfRecordExists(ratingType, typeId);
@@ -74,7 +74,7 @@ export class RatingController {
 
 	@Post('/')
 	async create(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() dto: CreateOrUpdateRatingDto,
 	): Promise<{ status: string; rating: Rating }> {
 		const { ratingType, typeId, score } = dto;
@@ -97,7 +97,7 @@ export class RatingController {
 
 	@Patch('/')
 	async update(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() dto: CreateOrUpdateRatingDto,
 	): Promise<{ status: string; rating: Rating }> {
 		const { ratingType, typeId, score } = dto;
@@ -115,7 +115,7 @@ export class RatingController {
 	@Delete('/')
 	@HttpCode(204)
 	async delete(
-		@Request() req: ReqUserDto,
+		@Request() req: ReqUser,
 		@Body() { ratingType, typeId }: GetOrDeleteRatingDto,
 	): Promise<{ status: string; message: string }> {
 		await this.ratingService.deleteRating({

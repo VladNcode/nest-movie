@@ -1,4 +1,4 @@
-export interface ReqUserDto {
+export interface ReqUser {
 	user: {
 		id: number;
 		email: string;
