@@ -55,7 +55,7 @@ export class LikeController {
 			throw new NotFoundException(ITEM_NOT_FOUND(likeType));
 		}
 
-		const count = await this.likeService.countLikes(likeType, typeId);
+		const count = await this.likeService.countLikes({ type: likeType, id: typeId });
 
 		if (count) {
 			return {

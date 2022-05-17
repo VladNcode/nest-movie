@@ -9,7 +9,7 @@ import { ActorsFirstAndLastName } from 'src/exports/interfaces';
 export class MovieService {
 	constructor(private prisma: PrismaService) {}
 
-	async getMovie(id: number): Promise<(Movie & ActorsFirstAndLastName) | null> {
+	async getMovie(id: Movie['id']): Promise<(Movie & ActorsFirstAndLastName) | null> {
 		return this.prisma.movie.findUnique({
 			where: { id },
 			include: {
@@ -28,7 +28,7 @@ export class MovieService {
 		return this.prisma.movie.findMany({ skip, take, cursor, where, orderBy });
 	}
 
-	async createMovie(data: Prisma.MovieCreateInput, actors: string[]) {
+	async createMovie(data: Prisma.MovieCreateInput, actors: string[]): Promise<Movie> {
 		const { title, description, releaseDate } = data;
 
 		const actorsData = actors.map(actor => ({
@@ -54,8 +54,9 @@ export class MovieService {
 		});
 	}
 
-	async updateMovie(id: Movie['id'], data: Prisma.MovieUpdateInput): Promise<Movie> {
-		return this.prisma.movie.update({ where: { id }, data });
+	async updateMovie(data: { id: Movie['id']; body: Prisma.MovieUpdateInput }): Promise<Movie> {
+		const { id, body } = data;
+		return this.prisma.movie.update({ where: { id }, data: body });
 	}
 
 	/**
@@ -64,7 +65,7 @@ export class MovieService {
 	 * @param id - the movie id
 	 * @returns deleted movie
 	 */
-	async deleteMovie(id: number): Promise<Movie> {
+	async deleteMovie(id: Movie['id']): Promise<Movie> {
 		const deletedLikes = this.prisma.like.deleteMany({
 			where: { AND: [{ likeType: 'movie' }, { typeId: id }] },
 		});

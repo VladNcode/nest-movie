@@ -20,8 +20,9 @@ export class ActorService {
 		return this.prisma.actor.create({ data });
 	}
 
-	async updateActor(id: Actor['id'], data: Prisma.ActorUpdateInput): Promise<Actor> {
-		return this.prisma.actor.update({ where: { id }, data });
+	async updateActor(data: { id: Actor['id']; body: Prisma.ActorUpdateInput }): Promise<Actor> {
+		const { id, body } = data;
+		return this.prisma.actor.update({ where: { id }, data: body });
 	}
 
 	/**

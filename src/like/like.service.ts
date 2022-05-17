@@ -14,7 +14,8 @@ export class LikeService {
 		});
 	}
 
-	async countLikes(type: LikeType, id: number): Promise<number> {
+	async countLikes(data: { type: LikeType; id: number }): Promise<number> {
+		const { type, id } = data;
 		const count = await this.prisma.like.aggregate({
 			_count: true,
 			where: {

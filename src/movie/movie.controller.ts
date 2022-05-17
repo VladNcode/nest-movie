@@ -81,7 +81,7 @@ export class MovieController {
 			posters.push(File.getLink({ host, destination, filename }));
 		});
 
-		const updatedMovie = await this.movieService.updateMovie(id, { posters });
+		const updatedMovie = await this.movieService.updateMovie({ id, body: { posters } });
 		return { status: 'success', data: updatedMovie };
 	}
 
@@ -97,7 +97,7 @@ export class MovieController {
 
 	@Patch('/:id')
 	async updateMovie(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateMovieDto) {
-		const updatedMovie = await this.movieService.updateMovie(id, dto);
+		const updatedMovie = await this.movieService.updateMovie({ id, body: dto });
 		return { status: 'success', data: updatedMovie };
 	}
 

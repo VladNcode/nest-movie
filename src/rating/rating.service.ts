@@ -42,7 +42,8 @@ export class RatingService {
 		});
 	}
 
-	async findRatingAverage(type: RatingType, id: number): Promise<number | null> {
+	async findRatingAverage(data: { type: RatingType; id: number }): Promise<number | null> {
+		const { type, id } = data;
 		const avg = await this.prisma.rating.aggregate({
 			_avg: {
 				score: true,

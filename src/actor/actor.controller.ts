@@ -72,14 +72,14 @@ export class ActorController {
 		@Headers('host') host: string,
 	): Promise<ReturnActor> {
 		const photo = File.getLink({ host, destination, filename });
-		const updatedActor = await this.actorService.updateActor(id, { photo });
+		const updatedActor = await this.actorService.updateActor({ id, body: { photo } });
 
 		return Formatted.response({ actor: updatedActor });
 	}
 
 	@Patch('/:id')
 	async updateActor(@Param('id', ParseIntPipe) id: Actor['id'], @Body() dto: UpdateActorDto): Promise<ReturnActor> {
-		const updatedActor = await this.actorService.updateActor(id, dto);
+		const updatedActor = await this.actorService.updateActor({ id, body: dto });
 
 		return Formatted.response({ actor: updatedActor });
 	}

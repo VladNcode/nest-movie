@@ -25,7 +25,8 @@ export class ReviewService {
 		});
 	}
 
-	async updateReview(id: Review['id'], body: Prisma.ReviewUpdateInput['body']): Promise<Review> {
+	async updateReview(data: { id: Review['id']; body: Prisma.ReviewUpdateInput['body'] }): Promise<Review> {
+		const { id, body } = data;
 		return this.prisma.review.update({ where: { id }, data: { body } });
 	}
 

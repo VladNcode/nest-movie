@@ -91,7 +91,7 @@ export class ReviewController {
 		}
 
 		if (review?.userId === req.user.id) {
-			const updatedReview = await this.reviewService.updateReview(id, body);
+			const updatedReview = await this.reviewService.updateReview({ id, body });
 			return { status: 'success', review: updatedReview };
 		}
 

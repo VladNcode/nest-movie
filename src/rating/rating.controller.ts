@@ -56,7 +56,7 @@ export class RatingController {
 			throw new NotFoundException(ITEM_NOT_FOUND(ratingType));
 		}
 
-		const avg = await this.ratingService.findRatingAverage(ratingType, typeId);
+		const avg = await this.ratingService.findRatingAverage({ type: ratingType, id: typeId });
 
 		if (avg) {
 			return {
