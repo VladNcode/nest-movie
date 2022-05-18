@@ -14,7 +14,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 		});
 	}
 
-	async checkIfRecordExists(type: LikeRatingCommentType, id: number) {
+	async checkIfRecordExists(data: { type: LikeRatingCommentType; id: number }) {
+		const { type, id } = data;
 		const models = {
 			movie: await this.movie.findUnique({ where: { id } }),
 			actor: await this.actor.findUnique({ where: { id } }),

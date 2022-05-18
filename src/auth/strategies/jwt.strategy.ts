@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Request } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { User } from '@prisma/client';
@@ -13,10 +13,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			ignoreExpiration: false,
 			secretOrKey: configService.get('JWT_SECRET'),
+			passReqToCallback: true,
 		});
 	}
 
-	async validate({ email, id, iat }: Pick<User, 'email' | 'id'> & { iat: number }) {
+	async validate(_: Request, { email, id, iat }: Pick<User, 'email' | 'id'> & { iat: number }) {
 		const userExist = await this.userService.getUser({ email });
 
 		if (!userExist) {
@@ -29,6 +30,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 			throw new UnauthorizedException(LOGIN_OR_PASSWORD_WAS_CHANGED);
 		}
 
-		return { email, id };
+		return { email, id, role: userExist.role };
 	}
 }

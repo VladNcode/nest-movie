@@ -20,20 +20,22 @@ import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './a
 import { USER_NOT_FOUND, EMAIL_OR_PASSWORD_IS_INCORRECT } from '../user/user.constants';
 import { AuthService } from './auth.service';
 import { Roles } from '../decorators/roles.decorator';
-import { Formatted, hashPassword } from '../helpers';
+import { Formatted, Passwords } from '../helpers';
 import { JwtAuthGuard, RolesGuard } from './guards';
 
 import { AuthDto, RegisterDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
 import { ReqUser, ReturnDeletedMessage, ReturnPasswordUpdate, ReturnSanitizedUser } from 'src/exports/interfaces';
+import { Auth } from '../decorators/apply.decorators';
 
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(RolesGuard)
+// @UseGuards(RolesGuard)
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
 
-	@UseGuards(JwtAuthGuard)
-	@Roles('admin')
+	// @UseGuards(JwtAuthGuard)
+	// @Roles('admin')
+	@Auth('admin')
 	@Get('test')
 	async test(@Request() req: ReqUser) {
 		return { status: 'success', email: req.user.email, id: req.user.id };
@@ -81,7 +83,7 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@Patch('/updatePassword')
 	async updatePassword(@Request() req: ReqUser, @Body() dto: UpdateUserPasswordDto): Promise<ReturnPasswordUpdate> {
-		const hashedPassword = await hashPassword(dto.password);
+		const hashedPassword = await Passwords.hashPassword(dto.password);
 		await this.userService.updateUserPassword({ email: req.user.email, password: hashedPassword });
 
 		return Formatted.response({ message: PASSWORD_UPDATED_SUCCESSFULLY });

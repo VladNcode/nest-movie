@@ -27,17 +27,17 @@ import {
 import { CommentService } from './comment.service';
 
 import { CreateOrUpdateCommentDto, GetCommentsDto, UpdateCommentDto } from 'src/exports/dto';
-import { ReqUser, ReturnComment, ReturnComments, ReturnDeletedMessage } from 'src/exports/interfaces';
+import { ReqUser, ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
 import { Formatted } from '../helpers';
+import { Comment } from '@prisma/client';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
 @Controller('comments')
 export class CommentController {
 	constructor(private readonly commentService: CommentService, private readonly prisma: PrismaService) {}
-
 	@Get('/')
-	async getComments(@Query() query: GetCommentsDto): Promise<ReturnComments> {
+	async getComments(@Query() query: GetCommentsDto): Promise<ReturnManyRecords<'comments', Comment[]>> {
 		const { skip, take, commentType, typeId, userId, id, order } = query;
 
 		const comments = await this.commentService.getComments({
@@ -47,11 +47,11 @@ export class CommentController {
 			orderBy: { id: order },
 		});
 
-		return { status: 'success', data: { results: comments.length, comments } };
+		return Formatted.response({ results: comments.length, comments });
 	}
 
 	@Get('/:id')
-	async getComment(@Param('id', ParseIntPipe) id: number): Promise<ReturnComment> {
+	async getComment(@Param('id', ParseIntPipe) id: number): Promise<ReturnSingleRecord<'comment', Comment>> {
 		const comment = await this.commentService.getComment(id);
 		if (!comment) {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
@@ -63,8 +63,8 @@ export class CommentController {
 	async createComment(
 		@Request() req: ReqUser,
 		@Body() { commentType, typeId, body }: CreateOrUpdateCommentDto,
-	): Promise<ReturnComment> {
-		const record = await this.prisma.checkIfRecordExists(commentType, typeId);
+	): Promise<ReturnSingleRecord<'comment', Comment>> {
+		const record = await this.prisma.checkIfRecordExists({ type: commentType, id: typeId });
 
 		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(commentType));
@@ -85,7 +85,7 @@ export class CommentController {
 		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 		@Body() { body }: UpdateCommentDto,
-	): Promise<ReturnComment> {
+	): Promise<ReturnSingleRecord<'comment', Comment>> {
 		const comment = await this.commentService.getComment(id);
 
 		if (!comment) {

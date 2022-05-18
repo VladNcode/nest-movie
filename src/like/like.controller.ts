@@ -32,7 +32,7 @@ export class LikeController {
 		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<{ status: string; userLiked: boolean }> {
-		const record = await this.prisma.checkIfRecordExists(likeType, typeId);
+		const record = await this.prisma.checkIfRecordExists({ type: likeType, id: typeId });
 
 		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(likeType));
@@ -49,7 +49,7 @@ export class LikeController {
 
 	@Get('/count')
 	async count(@Body() { likeType, typeId }: CreateOrDeleteLikeDto): Promise<CountLikes> {
-		const record = await this.prisma.checkIfRecordExists(likeType, typeId);
+		const record = await this.prisma.checkIfRecordExists({ type: likeType, id: typeId });
 
 		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(likeType));
@@ -72,7 +72,7 @@ export class LikeController {
 		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<{ status: string; like: Like }> {
-		const record = await this.prisma.checkIfRecordExists(likeType, typeId);
+		const record = await this.prisma.checkIfRecordExists({ type: likeType, id: typeId });
 
 		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(likeType));

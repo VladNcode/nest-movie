@@ -34,7 +34,7 @@ export class RatingController {
 		@Request() req: ReqUser,
 		@Body() { ratingType, typeId }: GetOrDeleteRatingDto,
 	): Promise<UserAlreadyRated> {
-		const record = await this.prisma.checkIfRecordExists(ratingType, typeId);
+		const record = await this.prisma.checkIfRecordExists({ type: ratingType, id: typeId });
 
 		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(ratingType));
@@ -50,7 +50,7 @@ export class RatingController {
 
 	@Get('/avg')
 	async getAverage(@Body() { ratingType, typeId }: FindRatingAverageDto) {
-		const record = await this.prisma.checkIfRecordExists(ratingType, typeId);
+		const record = await this.prisma.checkIfRecordExists({ type: ratingType, id: typeId });
 
 		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(ratingType));
@@ -79,7 +79,7 @@ export class RatingController {
 	): Promise<{ status: string; rating: Rating }> {
 		const { ratingType, typeId, score } = dto;
 
-		const record = await this.prisma.checkIfRecordExists(ratingType, typeId);
+		const record = await this.prisma.checkIfRecordExists({ type: ratingType, id: typeId });
 
 		if (!record) {
 			throw new NotFoundException(ITEM_NOT_FOUND(ratingType));

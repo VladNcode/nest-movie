@@ -21,10 +21,9 @@ import { Actor } from '@prisma/client';
 import { ACTOR_DELETED_SUCCESFULLY, ACTOR_NOT_FOUND } from './actor.constants';
 import { ActorService } from './actor.service';
 import { File, Formatted } from '../helpers';
-import { ResponseType } from '../helpers/formatter.helpers';
 
 import { ActorCreateDto, FindActorDto, UpdateActorDto } from 'src/exports/dto';
-import { ReturnActor, ReturnActors, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
+import { ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('actors')
@@ -32,7 +31,7 @@ export class ActorController {
 	constructor(private readonly actorService: ActorService) {}
 
 	@Get('/')
-	async getActors(@Query() query: FindActorDto): Promise<ReturnActors> {
+	async getActors(@Query() query: FindActorDto): Promise<ReturnManyRecords<'actors', Actor[]>> {
 		const { skip, take, firstName, lastName, id, order } = query;
 
 		const actors = await this.actorService.getActors({
@@ -44,11 +43,9 @@ export class ActorController {
 
 		return Formatted.response({ results: actors.length, actors });
 	}
-	// async getActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnType<ResponseType>> {
-	// async getActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnSingleRecord<'actor', Actor>> {
 
 	@Get('/:id')
-	async getActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnActor> {
+	async getActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const actor = await this.actorService.getActor(id);
 
 		if (!actor) {
@@ -59,7 +56,7 @@ export class ActorController {
 	}
 
 	@Post('/')
-	async createActor(@Body() dto: ActorCreateDto): Promise<ReturnActor> {
+	async createActor(@Body() dto: ActorCreateDto): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const actor = await this.actorService.createActor(dto);
 		return Formatted.response({ actor });
 	}
@@ -70,7 +67,7 @@ export class ActorController {
 		@Param('id', ParseIntPipe) id: Actor['id'],
 		@UploadedFile() { destination, filename }: Express.Multer.File,
 		@Headers('host') host: string,
-	): Promise<ReturnActor> {
+	): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const photo = File.getLink({ host, destination, filename });
 		const updatedActor = await this.actorService.updateActor({ id, body: { photo } });
 
@@ -78,14 +75,17 @@ export class ActorController {
 	}
 
 	@Patch('/:id')
-	async updateActor(@Param('id', ParseIntPipe) id: Actor['id'], @Body() dto: UpdateActorDto): Promise<ReturnActor> {
+	async updateActor(
+		@Param('id', ParseIntPipe) id: Actor['id'],
+		@Body() dto: UpdateActorDto,
+	): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const updatedActor = await this.actorService.updateActor({ id, body: dto });
 
 		return Formatted.response({ actor: updatedActor });
 	}
 
 	@Delete('/:id')
-	async deleteActor(@Param('id', ParseIntPipe) id: Actor['id']) {
+	async deleteActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnSingleRecord<'message', string>> {
 		await this.actorService.deleteActor(id);
 		return Formatted.response({ message: ACTOR_DELETED_SUCCESFULLY });
 	}

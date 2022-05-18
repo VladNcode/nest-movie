@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 
 import { UserService } from '../user/user.service';
-import { hashPassword } from '../helpers';
+import { Passwords } from '../helpers';
 
 import { RegisterDto } from 'src/exports/dto';
 
@@ -22,7 +22,7 @@ export class AuthService {
 
 	async signup(dto: RegisterDto): Promise<User> {
 		const { username, email, bio } = dto;
-		const passwordHash = await hashPassword(dto.password);
+		const passwordHash = await Passwords.hashPassword(dto.password);
 
 		return this.userService.createUser({
 			username,

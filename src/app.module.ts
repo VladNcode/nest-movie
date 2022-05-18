@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from './prisma/prisma.service';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { path } from 'app-root-path';
+import { join } from 'path';
+
+import { PrismaService } from './prisma/prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { MovieModule } from './movie/movie.module';
@@ -10,9 +14,6 @@ import { CommentModule } from './comment/comment.module';
 import { CommentResponseModule } from './comment-response/comment-response.module';
 import { LikeModule } from './like/like.module';
 import { RatingModule } from './rating/rating.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { path } from 'app-root-path';
-import { join } from 'path';
 
 @Module({
 	imports: [
