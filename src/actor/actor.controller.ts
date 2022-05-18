@@ -23,7 +23,7 @@ import { ActorService } from './actor.service';
 import { File, Formatted } from '../helpers';
 
 import { ActorCreateDto, FindActorDto, UpdateActorDto } from 'src/exports/dto';
-import { ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
+import { ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('actors')
@@ -80,12 +80,11 @@ export class ActorController {
 		@Body() dto: UpdateActorDto,
 	): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const updatedActor = await this.actorService.updateActor({ id, body: dto });
-
 		return Formatted.response({ actor: updatedActor });
 	}
 
 	@Delete('/:id')
-	async deleteActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnSingleRecord<'message', string>> {
+	async deleteActor(@Param('id', ParseIntPipe) id: Actor['id']): Promise<ReturnDeletedMessage<'message', string>> {
 		await this.actorService.deleteActor(id);
 		return Formatted.response({ message: ACTOR_DELETED_SUCCESFULLY });
 	}

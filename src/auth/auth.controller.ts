@@ -19,22 +19,18 @@ import { UserService } from '../user/user.service';
 import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './auth.constants';
 import { USER_NOT_FOUND, EMAIL_OR_PASSWORD_IS_INCORRECT } from '../user/user.constants';
 import { AuthService } from './auth.service';
-import { Roles } from '../decorators/roles.decorator';
 import { Formatted, Passwords } from '../helpers';
-import { JwtAuthGuard, RolesGuard } from './guards';
+import { JwtAuthGuard } from './guards';
+import { Auth } from '../decorators/apply.decorators';
 
 import { AuthDto, RegisterDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
 import { ReqUser, ReturnDeletedMessage, ReturnPasswordUpdate, ReturnSanitizedUser } from 'src/exports/interfaces';
-import { Auth } from '../decorators/apply.decorators';
 
 @UsePipes(new ValidationPipe({ transform: true }))
-// @UseGuards(RolesGuard)
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
 
-	// @UseGuards(JwtAuthGuard)
-	// @Roles('admin')
 	@Auth('admin')
 	@Get('test')
 	async test(@Request() req: ReqUser) {
@@ -65,6 +61,7 @@ export class AuthController {
 		}
 
 		const user = await this.authService.signup(dto);
+
 		return Formatted.sanitizeUser(user);
 	}
 
@@ -73,10 +70,8 @@ export class AuthController {
 	async updateEmail(@Request() req: ReqUser, @Body() dto: UpdateUserEmailDto): Promise<ReturnSanitizedUser> {
 		const oldEmail = req.user.email;
 		const newEmail = dto.email;
-
-		console.log(oldEmail, newEmail);
-
 		const user = await this.userService.updateUserEmail({ oldEmail, newEmail });
+
 		return Formatted.sanitizeUser(user);
 	}
 
@@ -92,9 +87,8 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@Delete('/deleteMe')
 	@HttpCode(204)
-	async deleteMe(@Request() req: ReqUser): Promise<ReturnDeletedMessage> {
+	async deleteMe(@Request() req: ReqUser): Promise<ReturnDeletedMessage<'message', string>> {
 		await this.userService.deleteUserByEmail(req.user.email);
-
-		return { status: 'success', message: ACCOUNT_DELETED_SUCCESSFULLY };
+		return Formatted.response({ message: ACCOUNT_DELETED_SUCCESSFULLY });
 	}
 }

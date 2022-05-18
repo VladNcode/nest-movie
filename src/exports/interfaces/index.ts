@@ -7,8 +7,7 @@ export * from '../../auth/interfaces/return-password-update.interface';
 export * from '../../like/interfaces/count-likes.interface';
 
 export * from '../../rating/interfaces/user-already-rated.interface';
-
-export * from '../../review/interfaces/return-updated-review';
+export * from '../../rating/interfaces/get-average-rating.interface';
 
 export * from '../../user/interfaces/sanitized-user.interface';
 

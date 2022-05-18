@@ -13,6 +13,7 @@ import {
 	Delete,
 	Get,
 	Query,
+	UnauthorizedException,
 } from '@nestjs/common';
 import { Review } from '@prisma/client';
 
@@ -23,9 +24,10 @@ import {
 	THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER,
 } from './review.constants';
 import { ReviewService } from './review.service';
+import { Formatted } from '../helpers';
 
 import { ReviewCreateDto, GetReviewsDto, UpdateReviewDto } from 'src/exports/dto';
-import { ReturnUpdatedReview, ReqUser } from 'src/exports/interfaces';
+import { ReqUser, ReturnManyRecords, ReturnSingleRecord, ReturnDeletedMessage } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
@@ -33,24 +35,8 @@ import { ReturnUpdatedReview, ReqUser } from 'src/exports/interfaces';
 export class ReviewController {
 	constructor(private readonly reviewService: ReviewService) {}
 
-	@Get('/:id')
-	async getReview(@Param('id', ParseIntPipe) id: number): Promise<{
-		status: string;
-		review: Review;
-	}> {
-		const review = await this.reviewService.getReview(id);
-		if (!review) {
-			throw new NotFoundException(REVIEW_WITH_THIS_ID_DOES_NOT_EXIST);
-		}
-
-		return { status: 'success', review };
-	}
-
 	@Get('/')
-	async getReviews(@Query() query: GetReviewsDto): Promise<{
-		status: string;
-		data: { results: number; reviews: Review[] };
-	}> {
+	async getReviews(@Query() query: GetReviewsDto): Promise<ReturnManyRecords<'reviews', Review[]>> {
 		const { skip, take, movieId, userId, id, order } = query;
 
 		const reviews = await this.reviewService.getReviews({
@@ -60,22 +46,26 @@ export class ReviewController {
 			orderBy: { id: order },
 		});
 
-		return {
-			status: 'success',
-			data: {
-				results: reviews.length,
-				reviews,
-			},
-		};
+		return Formatted.response({ results: reviews.length, reviews });
+	}
+
+	@Get('/:id')
+	async getReview(@Param('id', ParseIntPipe) id: number): Promise<ReturnSingleRecord<'review', Review>> {
+		const review = await this.reviewService.getReview(id);
+		if (!review) {
+			throw new NotFoundException(REVIEW_WITH_THIS_ID_DOES_NOT_EXIST);
+		}
+
+		return Formatted.response({ review });
 	}
 
 	@Post('/')
 	async createReview(
 		@Request() req: ReqUser,
 		@Body() { movieId, body }: ReviewCreateDto,
-	): Promise<{ status: string; data: Review }> {
+	): Promise<ReturnSingleRecord<'review', Review>> {
 		const review = await this.reviewService.createReview({ movieId, body, userId: req.user.id });
-		return { status: 'success', data: review };
+		return Formatted.response({ review });
 	}
 
 	@Patch('/:id')
@@ -83,37 +73,38 @@ export class ReviewController {
 		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 		@Body() { body }: UpdateReviewDto,
-	): Promise<ReturnUpdatedReview> {
+	): Promise<ReturnSingleRecord<'review', Review>> {
 		const review = await this.reviewService.getReview(id);
-
 		if (!review) {
 			throw new NotFoundException(REVIEW_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (review?.userId === req.user.id) {
-			const updatedReview = await this.reviewService.updateReview({ id, body });
-			return { status: 'success', review: updatedReview };
+		if (review?.userId !== req.user.id) {
+			throw new UnauthorizedException(THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
-		return { status: 'failure', message: THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER };
+		const updatedReview = await this.reviewService.updateReview({ id, body });
+
+		return Formatted.response({ review: updatedReview });
 	}
 
 	@Delete('/:id')
 	async deleteReview(
 		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
-	): Promise<{ status: string; message: string }> {
+	): Promise<ReturnDeletedMessage<'message', string>> {
 		const review = await this.reviewService.getReview(id);
 
 		if (!review) {
 			throw new NotFoundException(REVIEW_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (review?.userId === req.user.id) {
-			await this.reviewService.deleteReview(id);
-			return { status: 'success', message: REVIEW_DELETED };
+		if (review?.userId !== req.user.id) {
+			throw new UnauthorizedException(THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
-		return { status: 'failure', message: THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER };
+		await this.reviewService.deleteReview(id);
+
+		return Formatted.response({ message: REVIEW_DELETED });
 	}
 }

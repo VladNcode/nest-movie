@@ -15,6 +15,7 @@ import {
 	Delete,
 	UnauthorizedException,
 } from '@nestjs/common';
+import { Comment } from '@prisma/client';
 
 import { JwtAuthGuard } from '../auth/guards/';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
@@ -25,17 +26,17 @@ import {
 	THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER,
 } from './comment.constants';
 import { CommentService } from './comment.service';
+import { Formatted } from '../helpers';
 
 import { CreateOrUpdateCommentDto, GetCommentsDto, UpdateCommentDto } from 'src/exports/dto';
 import { ReqUser, ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
-import { Formatted } from '../helpers';
-import { Comment } from '@prisma/client';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
 @Controller('comments')
 export class CommentController {
 	constructor(private readonly commentService: CommentService, private readonly prisma: PrismaService) {}
+
 	@Get('/')
 	async getComments(@Query() query: GetCommentsDto): Promise<ReturnManyRecords<'comments', Comment[]>> {
 		const { skip, take, commentType, typeId, userId, id, order } = query;
@@ -56,6 +57,7 @@ export class CommentController {
 		if (!comment) {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
+
 		return Formatted.response({ comment });
 	}
 
@@ -92,27 +94,32 @@ export class CommentController {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (comment?.userId === req.user.id) {
-			const updatedComment = await this.commentService.updateComment({ id, body });
-			return Formatted.response({ comment: updatedComment });
+		if (comment?.userId !== req.user.id) {
+			throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
-		throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
+		const updatedComment = await this.commentService.updateComment({ id, body });
+
+		return Formatted.response({ comment: updatedComment });
 	}
 
 	@Delete('/:id')
-	async deleteComment(@Request() req: ReqUser, @Param('id', ParseIntPipe) id: number): Promise<ReturnDeletedMessage> {
+	async deleteComment(
+		@Request() req: ReqUser,
+		@Param('id', ParseIntPipe) id: number,
+	): Promise<ReturnDeletedMessage<'message', string>> {
 		const comment = await this.commentService.getComment(id);
 
 		if (!comment) {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (comment?.userId === req.user.id) {
-			await this.commentService.deleteComment(id);
-			return { status: 'success', message: COMMENT_DELETED_SUCCESFULLY };
+		if (comment?.userId !== req.user.id) {
+			throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
-		throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
+		await this.commentService.deleteComment(id);
+
+		return Formatted.response({ message: COMMENT_DELETED_SUCCESFULLY });
 	}
 }

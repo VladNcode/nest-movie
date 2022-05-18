@@ -1,4 +1,4 @@
-export interface ReturnDeletedMessage {
+export interface ReturnDeletedMessage<K extends string, T> {
 	status: string;
-	message: string;
+	data: { [key in K]: T };
 }

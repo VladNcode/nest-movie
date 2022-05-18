@@ -8,7 +8,6 @@ import {
 	Request,
 	UseGuards,
 	NotFoundException,
-	HttpCode,
 	Get,
 } from '@nestjs/common';
 import { Like } from '@prisma/client';
@@ -17,8 +16,9 @@ import { JwtAuthGuard } from '../auth/guards';
 import { PrismaService } from '../prisma/prisma.service';
 import { COULD_NOT_COUNT_LIKES, ITEM_NOT_FOUND, LIKE_DELETED_SUCCESSFULLY } from './like.constants';
 import { LikeService } from './like.service';
+import { Formatted } from '../helpers';
 
-import { CountLikes, ReqUser } from 'src/exports/interfaces';
+import { CountLikes, ReqUser, ReturnDeletedMessage, ReturnSingleRecord } from 'src/exports/interfaces';
 import { CreateOrDeleteLikeDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -31,7 +31,7 @@ export class LikeController {
 	async userAlreadyLiked(
 		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
-	): Promise<{ status: string; userLiked: boolean }> {
+	): Promise<ReturnSingleRecord<'userLiked', boolean>> {
 		const record = await this.prisma.checkIfRecordExists({ type: likeType, id: typeId });
 
 		if (!record) {
@@ -41,10 +41,10 @@ export class LikeController {
 		const liked = await this.likeService.findLike({ likeType, typeId, userId: req.user.id });
 
 		if (!liked) {
-			return { status: 'success', userLiked: false };
+			return Formatted.response({ userLiked: false });
 		}
 
-		return { status: 'success', userLiked: true };
+		return Formatted.response({ userLiked: true });
 	}
 
 	@Get('/count')
@@ -57,21 +57,18 @@ export class LikeController {
 
 		const count = await this.likeService.countLikes({ type: likeType, id: typeId });
 
-		if (count) {
-			return {
-				status: 'success',
-				data: { type: likeType, id: typeId, likeCount: count },
-			};
+		if (!count) {
+			throw new NotFoundException(COULD_NOT_COUNT_LIKES);
 		}
 
-		throw new NotFoundException(COULD_NOT_COUNT_LIKES);
+		return Formatted.response({ type: likeType, id: typeId, likeCount: count });
 	}
 
 	@Post('/')
 	async create(
 		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
-	): Promise<{ status: string; like: Like }> {
+	): Promise<ReturnSingleRecord<'like', Like>> {
 		const record = await this.prisma.checkIfRecordExists({ type: likeType, id: typeId });
 
 		if (!record) {
@@ -80,17 +77,16 @@ export class LikeController {
 
 		const like = await this.likeService.createLike({ likeType, typeId, userId: req.user.id });
 
-		return { status: 'success', like };
+		return Formatted.response({ like });
 	}
 
 	@Delete('/')
-	@HttpCode(204)
 	async delete(
 		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
-	): Promise<{ status: string; message: string }> {
+	): Promise<ReturnDeletedMessage<'message', string>> {
 		await this.likeService.deleteLike({ likeType, typeId, userId: req.user.id });
 
-		return { status: 'success', message: LIKE_DELETED_SUCCESSFULLY };
+		return Formatted.response({ message: LIKE_DELETED_SUCCESSFULLY });
 	}
 }

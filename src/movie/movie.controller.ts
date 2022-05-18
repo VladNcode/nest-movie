@@ -15,13 +15,15 @@ import {
 	ValidationPipe,
 	Headers,
 } from '@nestjs/common';
+import { Movie } from '@prisma/client';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
-import { File } from '../helpers/';
-import { MOVIE_NOT_FOUND } from './movie.constants';
+import { File, Formatted } from '../helpers/';
+import { MOVIE_DELETED_SUCCESFULLY, MOVIE_NOT_FOUND } from './movie.constants';
 import { MovieService } from './movie.service';
 
 import { CreateMovieDto, FindMovieDto, UpdateMovieDto } from 'src/exports/dto';
+import { ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from '../exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('movies')
@@ -29,7 +31,7 @@ export class MovieController {
 	constructor(private readonly movieService: MovieService) {}
 
 	@Get('/')
-	async getMovies(@Query() query: FindMovieDto) {
+	async getMovies(@Query() query: FindMovieDto): Promise<ReturnManyRecords<'movies', Movie[]>> {
 		const { skip, take, title, id, order } = query;
 
 		const movies = await this.movieService.getMovies({
@@ -39,17 +41,11 @@ export class MovieController {
 			orderBy: { id: order },
 		});
 
-		return {
-			status: 'success',
-			data: {
-				results: movies.length,
-				movies,
-			},
-		};
+		return Formatted.response({ results: movies.length, movies });
 	}
 
 	@Get('/:id')
-	async getMovie(@Param('id', ParseIntPipe) id: number) {
+	async getMovie(@Param('id', ParseIntPipe) id: number): Promise<ReturnSingleRecord<'movie', Movie>> {
 		const movie = await this.movieService.getMovie(id);
 
 		if (!movie) {
@@ -59,14 +55,12 @@ export class MovieController {
 		const { actors, ...noActorsMovie } = movie;
 
 		const actorsArray = [];
+
 		for (const { firstName, lastName } of actors) {
 			actorsArray.push(`${firstName} ${lastName}`);
 		}
 
-		return {
-			status: 'success',
-			movie: { ...noActorsMovie, actors: actorsArray },
-		};
+		return Formatted.response({ movie: { ...noActorsMovie, actors: actorsArray } });
 	}
 
 	@Post('/:id/uploadposters/')
@@ -75,35 +69,38 @@ export class MovieController {
 		@Param('id', ParseIntPipe) id: number,
 		@UploadedFiles() files: Express.Multer.File[],
 		@Headers('host') host: string,
-	) {
+	): Promise<ReturnSingleRecord<'movie', Movie>> {
 		const posters: string[] = [];
 		files.forEach(({ destination, filename }) => {
 			posters.push(File.getLink({ host, destination, filename }));
 		});
 
 		const updatedMovie = await this.movieService.updateMovie({ id, body: { posters } });
-		return { status: 'success', data: updatedMovie };
+
+		return Formatted.response({ movie: updatedMovie });
 	}
 
 	@Post('/')
-	async createMovie(@Body() dto: CreateMovieDto) {
+	async createMovie(@Body() dto: CreateMovieDto): Promise<ReturnSingleRecord<'movie', Movie>> {
 		const { title, description, releaseDate, actors } = dto;
-
 		const date = new Date(releaseDate);
 		const movie = await this.movieService.createMovie({ title, description, releaseDate: date }, actors);
 
-		return { status: 'success', data: movie };
+		return Formatted.response({ movie });
 	}
 
 	@Patch('/:id')
-	async updateMovie(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateMovieDto) {
+	async updateMovie(
+		@Param('id', ParseIntPipe) id: number,
+		@Body() dto: UpdateMovieDto,
+	): Promise<ReturnSingleRecord<'movie', Movie>> {
 		const updatedMovie = await this.movieService.updateMovie({ id, body: dto });
-		return { status: 'success', data: updatedMovie };
+		return Formatted.response({ movie: updatedMovie });
 	}
 
 	@Delete('/:id')
-	async deleteMovie(@Param('id', ParseIntPipe) id: number) {
-		const deletedMovie = await this.movieService.deleteMovie(id);
-		return { status: 'success', data: deletedMovie };
+	async deleteMovie(@Param('id', ParseIntPipe) id: number): Promise<ReturnDeletedMessage<'message', string>> {
+		await this.movieService.deleteMovie(id);
+		return Formatted.response({ message: MOVIE_DELETED_SUCCESFULLY });
 	}
 }

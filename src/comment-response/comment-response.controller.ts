@@ -13,6 +13,7 @@ import {
 	Request,
 	Post,
 	Delete,
+	UnauthorizedException,
 } from '@nestjs/common';
 import { CommentResponse } from '@prisma/client';
 
@@ -23,10 +24,10 @@ import {
 	THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER,
 } from '../comment/comment.constants';
 import { CommentResponseService } from './comment-response.service';
+import { Formatted } from '../helpers';
 
 import { CreateCommentResponseDto, GetCommentResponseDto, UpdateCommentResponseDto } from 'src/exports/dto';
-
-import { ReqUser } from 'src/exports/interfaces';
+import { ReqUser, ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
@@ -34,25 +35,10 @@ import { ReqUser } from 'src/exports/interfaces';
 export class CommentResponseController {
 	constructor(private readonly commentResponseService: CommentResponseService) {}
 
-	@Get('/:id')
-	async getCommentResponse(@Param('id', ParseIntPipe) id: number): Promise<{
-		status: string;
-		comment: CommentResponse;
-	}> {
-		const comment = await this.commentResponseService.getCommentResponse(id);
-
-		if (!comment) {
-			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
-		}
-
-		return { status: 'success', comment };
-	}
-
 	@Get('/')
-	async getCommentResponses(@Query() query: GetCommentResponseDto): Promise<{
-		status: string;
-		data: { results: number; comments: CommentResponse[] };
-	}> {
+	async getCommentResponses(
+		@Query() query: GetCommentResponseDto,
+	): Promise<ReturnManyRecords<'comments', CommentResponse[]>> {
 		const { skip, take, userId, commentId, id, order } = query;
 
 		const comments = await this.commentResponseService.getCommentResponses({
@@ -62,26 +48,34 @@ export class CommentResponseController {
 			orderBy: { id: order },
 		});
 
-		return {
-			status: 'success',
-			data: {
-				results: comments.length,
-				comments,
-			},
-		};
+		return Formatted.response({ results: comments.length, comments });
+	}
+
+	@Get('/:id')
+	async getCommentResponse(
+		@Param('id', ParseIntPipe) id: number,
+	): Promise<ReturnSingleRecord<'comment', CommentResponse>> {
+		const comment = await this.commentResponseService.getCommentResponse(id);
+
+		if (!comment) {
+			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
+		}
+
+		return Formatted.response({ comment });
 	}
 
 	@Post('/')
 	async createCommentResponse(
 		@Request() req: ReqUser,
 		@Body() { commentId, body }: CreateCommentResponseDto,
-	): Promise<{ status: string; comment: CommentResponse }> {
+	): Promise<ReturnSingleRecord<'comment', CommentResponse>> {
 		const comment = await this.commentResponseService.createCommentResponse({
 			commentId,
 			body,
 			userId: req.user.id,
 		});
-		return { status: 'success', comment };
+
+		return Formatted.response({ comment });
 	}
 
 	@Patch('/:id')
@@ -89,37 +83,39 @@ export class CommentResponseController {
 		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
 		@Body() { body }: UpdateCommentResponseDto,
-	): Promise<{ status: string; comment?: CommentResponse; message?: string }> {
+	): Promise<ReturnSingleRecord<'comment', CommentResponse>> {
 		const comment = await this.commentResponseService.getCommentResponse(id);
 
 		if (!comment) {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (comment?.userId === req.user.id) {
-			const updatedComment = await this.commentResponseService.updateCommentResponse({ id, body });
-			return { status: 'success', comment: updatedComment };
+		if (comment?.userId !== req.user.id) {
+			throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
-		return { status: 'failure', message: THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER };
+		const updatedComment = await this.commentResponseService.updateCommentResponse({ id, body });
+
+		return Formatted.response({ comment: updatedComment });
 	}
 
 	@Delete('/:id')
 	async deleteCommentResponse(
 		@Request() req: ReqUser,
 		@Param('id', ParseIntPipe) id: number,
-	): Promise<{ status: string; message: string }> {
+	): Promise<ReturnDeletedMessage<'message', string>> {
 		const comment = await this.commentResponseService.getCommentResponse(id);
 
 		if (!comment) {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (comment?.userId === req.user.id) {
-			await this.commentResponseService.deleteCommentResponse(id);
-			return { status: 'success', message: COMMENT_DELETED_SUCCESFULLY };
+		if (comment?.userId !== req.user.id) {
+			throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
-		return { status: 'success', message: THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER };
+		await this.commentResponseService.deleteCommentResponse(id);
+
+		return Formatted.response({ message: COMMENT_DELETED_SUCCESFULLY });
 	}
 }
