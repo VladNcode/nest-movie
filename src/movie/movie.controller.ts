@@ -13,7 +13,6 @@ import {
 	UseInterceptors,
 	UsePipes,
 	ValidationPipe,
-	Headers,
 } from '@nestjs/common';
 import { Movie } from '@prisma/client';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -68,11 +67,10 @@ export class MovieController {
 	async uploadPosters(
 		@Param('id', ParseIntPipe) id: number,
 		@UploadedFiles() files: Express.Multer.File[],
-		@Headers('host') host: string,
 	): Promise<ReturnSingleRecord<'movie', Movie>> {
 		const posters: string[] = [];
 		files.forEach(({ destination, filename }) => {
-			posters.push(File.getLink({ host, destination, filename }));
+			posters.push(File.getLink({ destination, filename }));
 		});
 
 		const updatedMovie = await this.movieService.updateMovie({ id, body: { posters } });

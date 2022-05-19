@@ -15,7 +15,6 @@ import {
 	Request,
 	UploadedFile,
 	UseInterceptors,
-	Headers,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -54,6 +53,7 @@ export class UserController {
 		return Formatted.response({ results: users.length, users });
 	}
 
+	//TODO fix username
 	@Get('/:id')
 	async getUser(@Param('id', ParseIntPipe) username: string): Promise<ReturnSingleRecord<'user', User>> {
 		const user = await this.userService.getUser({ username });
@@ -69,10 +69,9 @@ export class UserController {
 	@Post('/avatar')
 	async uploadAvatar(
 		@UploadedFile() { destination, filename }: Express.Multer.File,
-		@Headers('host') host: string,
 		@Request() req: ReqUser,
 	): Promise<ReturnSanitizedUser> {
-		const avatar = File.getLink({ host, destination, filename });
+		const avatar = File.getLink({ destination, filename });
 		const updatedUser = await this.userService.updateUser({ id: req.user.id, body: { avatar } });
 
 		return Formatted.sanitizeUser(updatedUser);

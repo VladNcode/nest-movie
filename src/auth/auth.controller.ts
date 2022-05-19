@@ -14,6 +14,15 @@ import {
 	ValidationPipe,
 } from '@nestjs/common';
 import { compare } from 'bcrypt';
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiForbiddenResponse,
+	ApiOperation,
+	ApiProperty,
+	ApiResponse,
+	ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 import { UserService } from '../user/user.service';
 import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './auth.constants';
@@ -21,22 +30,55 @@ import { USER_NOT_FOUND, EMAIL_OR_PASSWORD_IS_INCORRECT } from '../user/user.con
 import { AuthService } from './auth.service';
 import { Formatted, Passwords } from '../helpers';
 import { JwtAuthGuard } from './guards';
-import { Auth } from '../decorators/apply.decorators';
+import { Auth } from '../decorators/apply.decorator';
 
 import { AuthDto, RegisterDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
 import { ReqUser, ReturnDeletedMessage, ReturnPasswordUpdate, ReturnSanitizedUser } from 'src/exports/interfaces';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
+import { errorForTest } from '../decorators/swagger-errors.interface';
+
+export class ErrorDto {
+	@ApiProperty({ example: 401 })
+	statusCode: number;
+
+	@ApiProperty({ example: 'Unauthorized' })
+	message: string;
+}
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
 
-	@Auth('admin')
+	// @ApiUnauthorizedResponse({ description: 'Unauthorized.', type: AuthDto })
+	// @ApiForbiddenResponse({
+	// 	status: 401,
+	// 	description: 'You are not allowed to use this route if you are not authenticated',
+	// 	type: ErrorDto,
+	// })
+	// @ApiBearerAuth('access_token')
+	// @ApiOperation({ summary: 'test' })
+	// @ApiResponse({
+	// 	status: 200,
+	// 	description: 'Should be able to access thi route if logged in',
+	// 	type: AuthDto,
+	// })
+
+	@SwaggerDecorator([errorForTest], {
+		status: 200,
+		description: 'Should be able to access this route if logged in',
+		type: AuthDto,
+	})
+	@Auth('user')
 	@Get('test')
 	async test(@Request() req: ReqUser) {
 		return { status: 'success', email: req.user.email, id: req.user.id };
 	}
 
+	@ApiBody({
+		type: AuthDto,
+		description: 'Store product structure',
+	})
 	@HttpCode(200)
 	@Post('login')
 	async login(@Body() { username, password }: AuthDto): Promise<{ access_token: string }> {

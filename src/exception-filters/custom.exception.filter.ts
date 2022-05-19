@@ -17,7 +17,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
 
 		const hasKey = Object.keys(exp).length > 0 && exp.hasOwnProperty('response') ? true : false;
 		const isHttpInstance = exp instanceof HttpException ? true : false;
-		const error = hasKey ? exp.response.error : exp;
+		let error = hasKey ? exp.response.error : exp;
 		let statusCode = isHttpInstance ? exp.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 		let message = isHttpInstance ? exp.message : 'Oops Something went wrong!';
 		message = exp.response?.message || 'Oops Something went wrong!';
@@ -35,6 +35,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
 					);
 
 					statusCode = 400;
+					error = 'Bad Request';
 
 					message = ratingError
 						? 'This user already rated this record!'
@@ -46,6 +47,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
 				}
 				case 'P2025': {
 					message = exp.meta?.cause;
+					error = 'Not Found';
 					statusCode = 404;
 					break;
 				}
@@ -53,6 +55,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
 
 			res = {
 				statusCode,
+				error,
 				message,
 			};
 

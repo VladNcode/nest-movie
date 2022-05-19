@@ -1,15 +1,20 @@
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
 interface LinkData {
-	host: string;
 	destination: string;
 	filename: string;
 }
 
 type GetLink = (data: LinkData) => string;
 
+@Injectable()
 export class File {
 	public static getLink: GetLink = data => {
-		const { host, destination, filename } = data;
+		const config = new ConfigService();
+		const host = config.get('HOST_URL');
+		const { destination, filename } = data;
 
-		return `http://${host}${destination.split('uploads')[1]}/${filename}`;
+		return `${host}${destination.split('uploads')[1]}/${filename}`;
 	};
 }
