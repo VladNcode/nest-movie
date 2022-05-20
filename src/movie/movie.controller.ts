@@ -17,7 +17,7 @@ import {
 import { Movie } from '@prisma/client';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
-import { File, Formatted } from '../helpers/';
+import { FileService, Formatted } from '../helpers/';
 import { MOVIE_DELETED_SUCCESFULLY, MOVIE_NOT_FOUND } from './movie.constants';
 import { MovieService } from './movie.service';
 
@@ -27,7 +27,7 @@ import { ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from '../
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('movies')
 export class MovieController {
-	constructor(private readonly movieService: MovieService) {}
+	constructor(private readonly movieService: MovieService, private readonly fileService: FileService) {}
 
 	@Get('/')
 	async getMovies(@Query() query: FindMovieDto): Promise<ReturnManyRecords<'movies', Movie[]>> {
@@ -70,7 +70,7 @@ export class MovieController {
 	): Promise<ReturnSingleRecord<'movie', Movie>> {
 		const posters: string[] = [];
 		files.forEach(({ destination, filename }) => {
-			posters.push(File.getLink({ destination, filename }));
+			posters.push(this.fileService.getLink({ destination, filename }));
 		});
 
 		const updatedMovie = await this.movieService.updateMovie({ id, body: { posters } });

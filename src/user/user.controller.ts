@@ -19,7 +19,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { JwtAuthGuard } from '../auth/guards/';
-import { Formatted, File } from '../helpers/';
+import { FileService, Formatted } from '../helpers/';
 import { USER_NOT_FOUND, USER_SUCCESSFULLY_DELETED } from './user.constants';
 import { UserService } from './user.service';
 
@@ -37,7 +37,7 @@ import { User } from '@prisma/client';
 @UsePipes(new ValidationPipe({ transform: true }))
 @Controller('users')
 export class UserController {
-	constructor(private readonly userService: UserService) {}
+	constructor(private readonly userService: UserService, private readonly fileService: FileService) {}
 
 	@Get('/')
 	async getUsers(@Query() query: FindUserDto): Promise<ReturnManyRecords<'users', User[]>> {
@@ -71,7 +71,7 @@ export class UserController {
 		@UploadedFile() { destination, filename }: Express.Multer.File,
 		@Request() req: ReqUser,
 	): Promise<ReturnSanitizedUser> {
-		const avatar = File.getLink({ destination, filename });
+		const avatar = this.fileService.getLink({ destination, filename });
 		const updatedUser = await this.userService.updateUser({ id: req.user.id, body: { avatar } });
 
 		return Formatted.sanitizeUser(updatedUser);

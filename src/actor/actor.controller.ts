@@ -27,7 +27,7 @@ import { Actor } from '@prisma/client';
 
 import { ACTOR_DELETED_SUCCESFULLY, ACTOR_NOT_FOUND, YOU_NEED_TO_UPLOAD_A_FILE } from './actor.constants';
 import { ActorService } from './actor.service';
-import { File, Formatted } from '../helpers';
+import { FileService, Formatted } from '../helpers';
 import { SwaggerFileDecorator } from '../decorators/swagger-file-upload.decorator';
 import { ActorSwaggerDoc } from '../swagger/actor/actor.interface';
 
@@ -39,7 +39,7 @@ import { ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src
 @ApiTags('Actors')
 @Controller('actors')
 export class ActorController {
-	constructor(private readonly actorService: ActorService) {}
+	constructor(private readonly actorService: ActorService, private readonly fileService: FileService) {}
 
 	@Get('/')
 	@ApiOkResponse({ description: 'Returns actors array', content: ActorSwaggerDoc.getActors() })
@@ -93,7 +93,7 @@ export class ActorController {
 
 		const { destination, filename } = file;
 
-		const photo = File.getLink({ destination, filename });
+		const photo = this.fileService.getLink({ destination, filename });
 
 		const updatedActor = await this.actorService.updateActor({ id, body: { photo } });
 

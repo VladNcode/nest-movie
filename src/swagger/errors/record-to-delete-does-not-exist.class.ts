@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SwaggerErrors } from '../swagger-error.constants';
 import { ISwaggerErrorExample } from './global-swagger-error.interface';
 
 export class RecordToDeleteNotFound implements ISwaggerErrorExample {
@@ -14,9 +13,3 @@ export class RecordToDeleteNotFound implements ISwaggerErrorExample {
 	})
 	message: string;
 }
-
-export const recordToDeleteNotFound = {
-	description: 'Not Found',
-	type: RecordToDeleteNotFound,
-	decorator: SwaggerErrors.ApiNotFoundResponse,
-};

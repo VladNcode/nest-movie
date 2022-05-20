@@ -100,17 +100,22 @@ export class AuthSwaggerDoc {
 	public static changedPassOrMail() {
 		return {
 			'application/json': {
-				example: [
-					{
-						statusCode: 401,
-						error: 'Unauthorized',
-						message: 'You have recently changed password or email, please login again!',
-					},
-					{
-						statusCode: 401,
-						message: 'Unauthorized',
-					},
-				],
+				example: {
+					statusCode: 403,
+					error: 'Forbidden',
+					message: 'You have recently changed password or email, please login again!',
+				},
+			},
+		};
+	}
+
+	public static noBearer() {
+		return {
+			'application/json': {
+				example: {
+					statusCode: 401,
+					message: 'Unauthorized',
+				},
 			},
 		};
 	}

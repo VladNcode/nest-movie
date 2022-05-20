@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getMulterConfig } from '../configs/multer.config';
 import { MulterModule } from '@nestjs/platform-express';
+import { FileService } from '../helpers';
 
 @Module({
 	imports: [
@@ -13,6 +14,7 @@ import { MulterModule } from '@nestjs/platform-express';
 			useFactory: getMulterConfig,
 			inject: [ConfigService],
 		}),
+		FileService,
 	],
 	providers: [UserService, PrismaService],
 	exports: [UserService],

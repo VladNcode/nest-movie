@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Request } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { User } from '@prisma/client';
@@ -21,13 +21,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 		const userExist = await this.userService.getUser({ email });
 
 		if (!userExist) {
-			throw new UnauthorizedException(LOGIN_OR_PASSWORD_WAS_CHANGED);
+			throw new ForbiddenException(LOGIN_OR_PASSWORD_WAS_CHANGED);
 		}
 
 		const passwordChangedAt = parseInt((userExist.passwordChangedAt.getTime() / 1000).toString(), 10);
 
 		if (passwordChangedAt > iat) {
-			throw new UnauthorizedException(LOGIN_OR_PASSWORD_WAS_CHANGED);
+			throw new ForbiddenException(LOGIN_OR_PASSWORD_WAS_CHANGED);
 		}
 
 		return { email, id, role: userExist.role };
