@@ -65,9 +65,7 @@ export class ActorSwaggerDoc {
 			},
 		};
 	}
-}
 
-export class ActorSwaggerErrorsDoc {
 	public static actorNotFound() {
 		return {
 			'application/json': {

@@ -29,7 +29,7 @@ import { ACTOR_DELETED_SUCCESFULLY, ACTOR_NOT_FOUND, YOU_NEED_TO_UPLOAD_A_FILE }
 import { ActorService } from './actor.service';
 import { File, Formatted } from '../helpers';
 import { SwaggerFileDecorator } from '../decorators/swagger-file-upload.decorator';
-import { ActorSwaggerDoc, ActorSwaggerErrorsDoc } from '../swagger/actor/actor.interfaces';
+import { ActorSwaggerDoc } from '../swagger/actor/actor.interface';
 
 import { RecordToUpdateNotFound, RecordToDeleteNotFound, FileUploadError } from 'src/exports/swagger-errors';
 import { ActorCreateDto, FindActorDto, UpdateActorDto } from 'src/exports/dto';
@@ -58,7 +58,7 @@ export class ActorController {
 
 	@Get('/:id')
 	@ApiOkResponse({ description: 'Returns an actor', content: ActorSwaggerDoc.getActor() })
-	@ApiNotFoundResponse({ description: 'Not Found', content: ActorSwaggerErrorsDoc.actorNotFound() })
+	@ApiNotFoundResponse({ description: 'Not Found', content: ActorSwaggerDoc.actorNotFound() })
 	async getActor(@Param('id', ParseIntPipe) id: number): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const actor = await this.actorService.getActor(id);
 
@@ -71,7 +71,7 @@ export class ActorController {
 
 	@Post('/')
 	@ApiCreatedResponse({ description: 'Creates an actor', content: ActorSwaggerDoc.getActor() })
-	@ApiBadRequestResponse({ description: 'Bad Request', content: ActorSwaggerErrorsDoc.createActorBadRequest() })
+	@ApiBadRequestResponse({ description: 'Bad Request', content: ActorSwaggerDoc.createActorBadRequest() })
 	async createActor(@Body() dto: ActorCreateDto): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const actor = await this.actorService.createActor(dto);
 
