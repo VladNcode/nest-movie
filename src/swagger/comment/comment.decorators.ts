@@ -1,5 +1,6 @@
 import {
 	ApiBadRequestResponse,
+	ApiBearerAuth,
 	ApiCreatedResponse,
 	ApiForbiddenResponse,
 	ApiNotFoundResponse,
@@ -22,12 +23,14 @@ export const getComment = [
 ];
 
 export const createComment = [
+	ApiBearerAuth('access_token'),
 	ApiCreatedResponse({ description: 'Creates a comment', content: CommentSwaggerDoc.createComment() }),
 	ApiBadRequestResponse({ description: 'Bad Request', content: CommentSwaggerDoc.createCommentBadRequest() }),
 	...NoBearerOrNeedToRelogin,
 ];
 
 export const updateComment = [
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({ description: 'Returns updated comment', content: CommentSwaggerDoc.updatedComment() }),
 	ApiNotFoundResponse({ description: 'Not Found', type: RecordToUpdateNotFound }),
 	...NoBearerOrNeedToRelogin,
@@ -35,6 +38,7 @@ export const updateComment = [
 ];
 
 export const deleteComment = [
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({ description: 'Deletes comment record', content: CommentSwaggerDoc.getCommentDeletedMessage() }),
 	ApiNotFoundResponse({ description: 'Not Found', type: RecordToDeleteNotFound }),
 	...NoBearerOrNeedToRelogin,

@@ -9,28 +9,35 @@ import {
 	UseGuards,
 	NotFoundException,
 	Get,
+	Query,
+	BadRequestException,
 } from '@nestjs/common';
 import { Like } from '@prisma/client';
+import { ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards';
 import { PrismaService } from '../prisma/prisma.service';
-import { COULD_NOT_COUNT_LIKES, ITEM_NOT_FOUND, LIKE_DELETED_SUCCESSFULLY } from './like.constants';
+import { ITEM_NOT_FOUND, LIKE_DELETED_SUCCESSFULLY, NOT_LIKED } from './like.constants';
 import { LikeService } from './like.service';
 import { Formatted } from '../helpers';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
+import { count, create, deleteLike, userAlreadyLiked } from '../swagger/like/like.decorators';
 
 import { CountLikes, ReqUser, ReturnDeletedMessage, ReturnSingleRecord } from 'src/exports/interfaces';
 import { CreateOrDeleteLikeDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
+@ApiTags('Likes')
 @Controller('likes')
 export class LikeController {
 	constructor(private readonly likeService: LikeService, private readonly prisma: PrismaService) {}
 
+	@SwaggerDecorator(userAlreadyLiked)
 	@Get('/userLike')
 	async userAlreadyLiked(
 		@Request() req: ReqUser,
-		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
+		@Query() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<ReturnSingleRecord<'userLiked', boolean>> {
 		const record = await this.prisma.checkIfRecordExists({ type: likeType, id: typeId });
 
@@ -47,8 +54,9 @@ export class LikeController {
 		return Formatted.response({ userLiked: true });
 	}
 
+	@SwaggerDecorator(count)
 	@Get('/count')
-	async count(@Body() { likeType, typeId }: CreateOrDeleteLikeDto): Promise<CountLikes> {
+	async count(@Query() { likeType, typeId }: CreateOrDeleteLikeDto): Promise<CountLikes> {
 		const record = await this.prisma.checkIfRecordExists({ type: likeType, id: typeId });
 
 		if (!record) {
@@ -57,13 +65,10 @@ export class LikeController {
 
 		const count = await this.likeService.countLikes({ type: likeType, id: typeId });
 
-		if (!count) {
-			throw new NotFoundException(COULD_NOT_COUNT_LIKES);
-		}
-
 		return Formatted.response({ type: likeType, id: typeId, likeCount: count });
 	}
 
+	@SwaggerDecorator(create)
 	@Post('/')
 	async create(
 		@Request() req: ReqUser,
@@ -80,11 +85,17 @@ export class LikeController {
 		return Formatted.response({ like });
 	}
 
+	@SwaggerDecorator(deleteLike)
 	@Delete('/')
 	async delete(
 		@Request() req: ReqUser,
 		@Body() { likeType, typeId }: CreateOrDeleteLikeDto,
 	): Promise<ReturnDeletedMessage<'message', string>> {
+		const liked = await this.likeService.findLike({ likeType, typeId, userId: req.user.id });
+		if (!liked) {
+			throw new BadRequestException(NOT_LIKED);
+		}
+
 		await this.likeService.deleteLike({ likeType, typeId, userId: req.user.id });
 
 		return Formatted.response({ message: LIKE_DELETED_SUCCESSFULLY });

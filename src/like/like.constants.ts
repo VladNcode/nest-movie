@@ -4,4 +4,4 @@ export const ITEM_NOT_FOUND = (likeType: string) =>
 	} with this id was not found!`;
 
 export const LIKE_DELETED_SUCCESSFULLY = 'Like was deleted successfully!';
-export const COULD_NOT_COUNT_LIKES = 'Could not count likes!';
+export const NOT_LIKED = 'User have not liked this record!';
