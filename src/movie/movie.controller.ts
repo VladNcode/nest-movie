@@ -40,7 +40,7 @@ export class MovieController {
 			orderBy: { id: order },
 		});
 
-		return Formatted.response({ results: movies.length, movies });
+		return Formatted.moviesWithActors(movies);
 	}
 
 	@Get('/:id')
@@ -51,15 +51,16 @@ export class MovieController {
 			throw new NotFoundException(MOVIE_NOT_FOUND);
 		}
 
-		const { actors, ...noActorsMovie } = movie;
+		return Formatted.movieWithActors(movie);
+	}
 
-		const actorsArray = [];
+	@Post('/')
+	async createMovie(@Body() dto: CreateMovieDto): Promise<ReturnSingleRecord<'movie', Movie>> {
+		const { title, description, releaseDate, actors } = dto;
+		const date = new Date(releaseDate);
+		const movie = await this.movieService.createMovie({ title, description, releaseDate: date }, actors);
 
-		for (const { firstName, lastName } of actors) {
-			actorsArray.push(`${firstName} ${lastName}`);
-		}
-
-		return Formatted.response({ movie: { ...noActorsMovie, actors: actorsArray } });
+		return Formatted.movieWithActors(movie);
 	}
 
 	@Post('/:id/uploadposters/')
@@ -75,16 +76,7 @@ export class MovieController {
 
 		const updatedMovie = await this.movieService.updateMovie({ id, body: { posters } });
 
-		return Formatted.response({ movie: updatedMovie });
-	}
-
-	@Post('/')
-	async createMovie(@Body() dto: CreateMovieDto): Promise<ReturnSingleRecord<'movie', Movie>> {
-		const { title, description, releaseDate, actors } = dto;
-		const date = new Date(releaseDate);
-		const movie = await this.movieService.createMovie({ title, description, releaseDate: date }, actors);
-
-		return Formatted.response({ movie });
+		return Formatted.movieWithActors(updatedMovie);
 	}
 
 	@Patch('/:id')
@@ -92,8 +84,13 @@ export class MovieController {
 		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: UpdateMovieDto,
 	): Promise<ReturnSingleRecord<'movie', Movie>> {
+		const movie = await this.movieService.getMovie(id);
+		if (!movie) {
+			throw new NotFoundException(MOVIE_NOT_FOUND);
+		}
+
 		const updatedMovie = await this.movieService.updateMovie({ id, body: dto });
-		return Formatted.response({ movie: updatedMovie });
+		return Formatted.movieWithActors(updatedMovie);
 	}
 
 	@Delete('/:id')

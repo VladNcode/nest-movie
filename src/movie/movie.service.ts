@@ -23,12 +23,26 @@ export class MovieService {
 		});
 	}
 
-	async getMovies(params: Prisma.MovieFindManyArgs): Promise<Movie[]> {
+	async getMovies(params: Prisma.MovieFindManyArgs): Promise<(Movie & ActorsFirstAndLastName)[]> {
 		const { skip, take, cursor, where, orderBy } = params;
-		return this.prisma.movie.findMany({ skip, take, cursor, where, orderBy });
+		return this.prisma.movie.findMany({
+			skip,
+			take,
+			cursor,
+			where,
+			orderBy,
+			include: {
+				actors: {
+					select: {
+						firstName: true,
+						lastName: true,
+					},
+				},
+			},
+		});
 	}
 
-	async createMovie(data: Prisma.MovieCreateInput, actors: string[]): Promise<Movie> {
+	async createMovie(data: Prisma.MovieCreateInput, actors: string[]): Promise<Movie & ActorsFirstAndLastName> {
 		const { title, description, releaseDate } = data;
 
 		const actorsData = actors.map(actor => ({
@@ -37,7 +51,6 @@ export class MovieService {
 				tag: actor,
 				firstName: actor.split(' ')[0],
 				lastName: actor.split(' ')[1] || '',
-				photo: 'lol.jpg',
 			},
 		}));
 
@@ -51,12 +64,85 @@ export class MovieService {
 					connectOrCreate: actorsData,
 				},
 			},
+			include: {
+				actors: {
+					select: {
+						firstName: true,
+						lastName: true,
+					},
+				},
+			},
 		});
 	}
 
-	async updateMovie(data: { id: Movie['id']; body: Prisma.MovieUpdateInput }): Promise<Movie> {
-		const { id, body } = data;
-		return this.prisma.movie.update({ where: { id }, data: body });
+	/**
+	 * If data contains actors param we are are getting the movie by id to compare its actors to provided actors
+	 * After that we disconnect actors that wasn't provided but existed in current movie
+	 * And also create/connect provided actors
+	 * @param data
+	 * @returns
+	 */
+	async updateMovie(data: {
+		id: Movie['id'];
+		body: Prisma.MovieUpdateInput & { actors?: string[] };
+	}): Promise<Movie & ActorsFirstAndLastName> {
+		const {
+			id,
+			body: { actors, ...movie },
+		} = data;
+
+		const existingMovie = await this.getMovie(id);
+
+		if (actors) {
+			const actorTags = existingMovie?.actors.map(
+				({ firstName, lastName }) => `${firstName}${lastName ? ' ' + lastName : ''}`,
+			);
+
+			const tagsToRemove = actorTags?.filter(actor => !actors.includes(actor)).map(actorTag => ({ tag: actorTag }));
+
+			const actorsData = actors.map(actor => ({
+				where: { tag: actor },
+				create: {
+					tag: actor,
+					firstName: actor.split(' ')[0],
+					lastName: actor.split(' ')[1] || '',
+				},
+			}));
+
+			return this.prisma.movie.update({
+				where: { id },
+				data: {
+					...movie,
+					actors: {
+						disconnect: tagsToRemove,
+						connectOrCreate: actorsData,
+					},
+				},
+				include: {
+					actors: {
+						select: {
+							firstName: true,
+							lastName: true,
+						},
+					},
+				},
+			});
+		}
+
+		return this.prisma.movie.update({
+			where: { id },
+			data: {
+				...movie,
+			},
+			include: {
+				actors: {
+					select: {
+						firstName: true,
+						lastName: true,
+					},
+				},
+			},
+		});
 	}
 
 	/**
