@@ -1,4 +1,10 @@
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse } from '@nestjs/swagger';
+import {
+	ApiBadRequestResponse,
+	ApiCreatedResponse,
+	ApiForbiddenResponse,
+	ApiNotFoundResponse,
+	ApiOkResponse,
+} from '@nestjs/swagger';
 
 import { RecordToDeleteNotFound, RecordToUpdateNotFound } from '../../exports/swagger-errors';
 import { NoBearerOrNeedToRelogin } from '../global-unauthorized-no-bearer/no-bearer-unauth.decorator';
@@ -22,13 +28,15 @@ export const createComment = [
 ];
 
 export const updateComment = [
-	ApiOkResponse({ description: 'Returns updated comment', content: CommentSwaggerDoc.getComment() }),
-	ApiNotFoundResponse({ status: 404, description: 'Not Found', type: RecordToUpdateNotFound }),
+	ApiOkResponse({ description: 'Returns updated comment', content: CommentSwaggerDoc.updatedComment() }),
+	ApiNotFoundResponse({ description: 'Not Found', type: RecordToUpdateNotFound }),
 	...NoBearerOrNeedToRelogin,
+	ApiForbiddenResponse({ description: 'Forbidden', content: CommentSwaggerDoc.updateCommentForbidden() }),
 ];
 
 export const deleteComment = [
 	ApiOkResponse({ description: 'Deletes comment record', content: CommentSwaggerDoc.getCommentDeletedMessage() }),
-	ApiNotFoundResponse({ status: 404, description: 'Not Found', type: RecordToDeleteNotFound }),
+	ApiNotFoundResponse({ description: 'Not Found', type: RecordToDeleteNotFound }),
 	...NoBearerOrNeedToRelogin,
+	ApiForbiddenResponse({ description: 'Forbidden', content: CommentSwaggerDoc.updateCommentForbidden() }),
 ];

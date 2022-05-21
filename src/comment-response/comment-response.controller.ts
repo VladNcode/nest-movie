@@ -13,9 +13,10 @@ import {
 	Request,
 	Post,
 	Delete,
-	UnauthorizedException,
+	ForbiddenException,
 } from '@nestjs/common';
 import { CommentResponse } from '@prisma/client';
+import { ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards';
 import {
@@ -28,13 +29,23 @@ import { Formatted } from '../helpers';
 
 import { CreateCommentResponseDto, GetCommentResponseDto, UpdateCommentResponseDto } from 'src/exports/dto';
 import { ReqUser, ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
+import {
+	createCommentResponse,
+	deleteCommentResponse,
+	getCommentResponse,
+	getCommentResponses,
+	updateCommentResponse,
+} from '../swagger/comment-response/comment-response.decorators';
 
+@ApiTags('Comment Responses')
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
 @Controller('commentResponse')
 export class CommentResponseController {
 	constructor(private readonly commentResponseService: CommentResponseService) {}
 
+	@SwaggerDecorator(getCommentResponses)
 	@Get('/')
 	async getCommentResponses(
 		@Query() query: GetCommentResponseDto,
@@ -51,6 +62,7 @@ export class CommentResponseController {
 		return Formatted.response({ results: comments.length, comments });
 	}
 
+	@SwaggerDecorator(getCommentResponse)
 	@Get('/:id')
 	async getCommentResponse(
 		@Param('id', ParseIntPipe) id: number,
@@ -64,6 +76,7 @@ export class CommentResponseController {
 		return Formatted.response({ comment });
 	}
 
+	@SwaggerDecorator(createCommentResponse)
 	@Post('/')
 	async createCommentResponse(
 		@Request() req: ReqUser,
@@ -78,6 +91,7 @@ export class CommentResponseController {
 		return Formatted.response({ comment });
 	}
 
+	@SwaggerDecorator(updateCommentResponse)
 	@Patch('/:id')
 	async updateCommentResponse(
 		@Request() req: ReqUser,
@@ -91,7 +105,7 @@ export class CommentResponseController {
 		}
 
 		if (comment?.userId !== req.user.id) {
-			throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
+			throw new ForbiddenException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
 		const updatedComment = await this.commentResponseService.updateCommentResponse({ id, body });
@@ -99,6 +113,7 @@ export class CommentResponseController {
 		return Formatted.response({ comment: updatedComment });
 	}
 
+	@SwaggerDecorator(deleteCommentResponse)
 	@Delete('/:id')
 	async deleteCommentResponse(
 		@Request() req: ReqUser,
@@ -111,7 +126,7 @@ export class CommentResponseController {
 		}
 
 		if (comment?.userId !== req.user.id) {
-			throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
+			throw new ForbiddenException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
 		await this.commentResponseService.deleteCommentResponse(id);

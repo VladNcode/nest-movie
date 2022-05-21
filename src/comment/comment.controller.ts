@@ -13,7 +13,7 @@ import {
 	Request,
 	Patch,
 	Delete,
-	UnauthorizedException,
+	ForbiddenException,
 } from '@nestjs/common';
 import { Comment } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
@@ -109,7 +109,7 @@ export class CommentController {
 		}
 
 		if (comment?.userId !== req.user.id) {
-			throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
+			throw new ForbiddenException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
 		const updatedComment = await this.commentService.updateComment({ id, body });
@@ -130,7 +130,7 @@ export class CommentController {
 		}
 
 		if (comment?.userId !== req.user.id) {
-			throw new UnauthorizedException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
+			throw new ForbiddenException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
 		await this.commentService.deleteComment(id);

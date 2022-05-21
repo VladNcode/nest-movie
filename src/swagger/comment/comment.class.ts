@@ -109,9 +109,7 @@ export class CommentSwaggerDoc {
 			'application/json': {
 				example: {
 					status: 'success',
-					data: {
-						message: 'Actor deleted successfully!',
-					},
+					message: 'This comment has been deleted!',
 				},
 			},
 		};
@@ -124,6 +122,18 @@ export class CommentSwaggerDoc {
 					statusCode: 404,
 					error: 'Not Found',
 					message: 'Comment with this ID does not exist!',
+				},
+			},
+		};
+	}
+
+	public static updateCommentBadRequest() {
+		return {
+			'application/json': {
+				example: {
+					statusCode: 400,
+					error: 'Bad Request',
+					message: ['body should not be empty', 'body must be a string'],
 				},
 			},
 		};
@@ -143,6 +153,36 @@ export class CommentSwaggerDoc {
 						'body must be a string',
 						'body should not be empty',
 					],
+				},
+			},
+		};
+	}
+
+	public static updateCommentForbidden() {
+		return {
+			'application/json': {
+				example: {
+					statusCode: 403,
+					error: 'Forbidden',
+					message: 'This comment does not belong to current user!',
+				},
+			},
+		};
+	}
+
+	public static updatedComment() {
+		return {
+			'application/json': {
+				example: {
+					status: 'success',
+					comment: {
+						id: 1,
+						createdAt: '2022-05-13T09:27:43.698Z',
+						updatedAt: '2022-05-13T09:27:43.699Z',
+						body: 'Update comment text',
+						commentId: 3,
+						userId: 18,
+					},
 				},
 			},
 		};
