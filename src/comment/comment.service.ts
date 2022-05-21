@@ -11,7 +11,7 @@ export class CommentService {
 		return this.prisma.comment.findUnique({
 			where: { id },
 			include: {
-				CommentResponse: {
+				commentResponses: {
 					select: {
 						userId: true,
 						body: true,
@@ -31,7 +31,7 @@ export class CommentService {
 			where,
 			orderBy,
 			include: {
-				CommentResponse: {
+				commentResponses: {
 					select: {
 						userId: true,
 						body: true,

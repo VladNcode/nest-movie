@@ -13,7 +13,7 @@ export class CommentSwaggerDoc {
 							commentType: 'movie',
 							typeId: 1,
 							userId: 3,
-							CommentResponse: [
+							commentResponses: [
 								{
 									userId: 3,
 									body: 'Comment response',
@@ -46,7 +46,7 @@ export class CommentSwaggerDoc {
 								commentType: 'movie',
 								typeId: 1,
 								userId: 3,
-								CommentResponse: [
+								commentResponses: [
 									{
 										userId: 3,
 										body: 'Comment response',
