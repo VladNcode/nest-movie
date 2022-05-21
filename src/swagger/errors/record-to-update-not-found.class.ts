@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { SwaggerErrors } from '../swagger-error.constants';
 import { ISwaggerErrorExample } from './global-swagger-error.interface';
 

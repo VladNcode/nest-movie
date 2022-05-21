@@ -1,4 +1,4 @@
-import { AuthSwaggerDoc } from './auth.interface';
+import { AuthSwaggerDoc } from './auth.class';
 
 export const NEED_TO_RELOGIN = {
 	description: 'You have recently changed email or password and need to re-login',

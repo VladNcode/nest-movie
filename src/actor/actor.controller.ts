@@ -16,22 +16,22 @@ import {
 	BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-	ApiBadRequestResponse,
-	ApiCreatedResponse,
-	ApiNotFoundResponse,
-	ApiOkResponse,
-	ApiTags,
-} from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Actor } from '@prisma/client';
 
 import { ACTOR_DELETED_SUCCESFULLY, ACTOR_NOT_FOUND, YOU_NEED_TO_UPLOAD_A_FILE } from './actor.constants';
 import { ActorService } from './actor.service';
 import { FileService, Formatted } from '../helpers';
-import { SwaggerFileDecorator } from '../decorators/swagger-file-upload.decorator';
-import { ActorSwaggerDoc } from '../swagger/actor/actor.interface';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
+import {
+	createActor,
+	deleteActor,
+	getActor,
+	getActors,
+	updateActor,
+	uploadPhoto,
+} from '../swagger/actor/actor.decorators';
 
-import { RecordToUpdateNotFound, RecordToDeleteNotFound, FileUploadError } from 'src/exports/swagger-errors';
 import { ActorCreateDto, FindActorDto, UpdateActorDto } from 'src/exports/dto';
 import { ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
 
@@ -41,8 +41,8 @@ import { ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src
 export class ActorController {
 	constructor(private readonly actorService: ActorService, private readonly fileService: FileService) {}
 
+	@SwaggerDecorator(getActors)
 	@Get('/')
-	@ApiOkResponse({ description: 'Returns actors array', content: ActorSwaggerDoc.getActors() })
 	async getActors(@Query() query: FindActorDto): Promise<ReturnManyRecords<'actors', Actor[]>> {
 		const { skip, take, firstName, lastName, id, order } = query;
 
@@ -56,9 +56,8 @@ export class ActorController {
 		return Formatted.response({ results: actors.length, actors });
 	}
 
+	@SwaggerDecorator(getActor)
 	@Get('/:id')
-	@ApiOkResponse({ description: 'Returns an actor', content: ActorSwaggerDoc.getActor() })
-	@ApiNotFoundResponse({ description: 'Not Found', content: ActorSwaggerDoc.actorNotFound() })
 	async getActor(@Param('id', ParseIntPipe) id: number): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const actor = await this.actorService.getActor(id);
 
@@ -69,20 +68,17 @@ export class ActorController {
 		return Formatted.response({ actor });
 	}
 
+	@SwaggerDecorator(createActor)
 	@Post('/')
-	@ApiCreatedResponse({ description: 'Creates an actor', content: ActorSwaggerDoc.getActor() })
-	@ApiBadRequestResponse({ description: 'Bad Request', content: ActorSwaggerDoc.createActorBadRequest() })
 	async createActor(@Body() dto: ActorCreateDto): Promise<ReturnSingleRecord<'actor', Actor>> {
 		const actor = await this.actorService.createActor(dto);
 
 		return Formatted.response({ actor });
 	}
 
-	@Patch('/:id/photo')
+	@SwaggerDecorator(uploadPhoto)
 	@UseInterceptors(FileInterceptor('file'))
-	@SwaggerFileDecorator()
-	@ApiOkResponse({ description: 'Returns updated actor', content: ActorSwaggerDoc.getActor() })
-	@ApiNotFoundResponse({ description: 'Not Found', type: FileUploadError })
+	@Patch('/:id/photo')
 	async uploadPhoto(
 		@Param('id', ParseIntPipe) id: number,
 		@UploadedFile() file: Express.Multer.File,
@@ -100,9 +96,8 @@ export class ActorController {
 		return Formatted.response({ actor: updatedActor });
 	}
 
+	@SwaggerDecorator(updateActor)
 	@Patch('/:id')
-	@ApiOkResponse({ description: 'Returns updated actor', content: ActorSwaggerDoc.getActor() })
-	@ApiNotFoundResponse({ status: 404, description: 'Not Found', type: RecordToUpdateNotFound })
 	async updateActor(
 		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: UpdateActorDto,
@@ -112,9 +107,8 @@ export class ActorController {
 		return Formatted.response({ actor: updatedActor });
 	}
 
+	@SwaggerDecorator(deleteActor)
 	@Delete('/:id')
-	@ApiOkResponse({ description: 'Deletes actor record', content: ActorSwaggerDoc.getActorDeletedMessage() })
-	@ApiNotFoundResponse({ status: 404, description: 'Not Found', type: RecordToDeleteNotFound })
 	async deleteActor(@Param('id', ParseIntPipe) id: number): Promise<ReturnDeletedMessage<'message', string>> {
 		await this.actorService.deleteActor(id);
 

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { ISwaggerErrorExample } from './global-swagger-error.interface';
 
 const err = 'asdasdasdasdasd';

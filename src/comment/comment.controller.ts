@@ -16,6 +16,7 @@ import {
 	UnauthorizedException,
 } from '@nestjs/common';
 import { Comment } from '@prisma/client';
+import { ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
@@ -27,16 +28,26 @@ import {
 } from './comment.constants';
 import { CommentService } from './comment.service';
 import { Formatted } from '../helpers';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
+import {
+	createComment,
+	deleteComment,
+	getComment,
+	getComments,
+	updateComment,
+} from '../swagger/comment/comment.decorators';
 
 import { CreateOrUpdateCommentDto, GetCommentsDto, UpdateCommentDto } from 'src/exports/dto';
 import { ReqUser, ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from 'src/exports/interfaces';
 
+@ApiTags('Comments')
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
 @Controller('comments')
 export class CommentController {
 	constructor(private readonly commentService: CommentService, private readonly prisma: PrismaService) {}
 
+	@SwaggerDecorator(getComments)
 	@Get('/')
 	async getComments(@Query() query: GetCommentsDto): Promise<ReturnManyRecords<'comments', Comment[]>> {
 		const { skip, take, commentType, typeId, userId, id, order } = query;
@@ -51,6 +62,7 @@ export class CommentController {
 		return Formatted.response({ results: comments.length, comments });
 	}
 
+	@SwaggerDecorator(getComment)
 	@Get('/:id')
 	async getComment(@Param('id', ParseIntPipe) id: number): Promise<ReturnSingleRecord<'comment', Comment>> {
 		const comment = await this.commentService.getComment(id);
@@ -61,6 +73,7 @@ export class CommentController {
 		return Formatted.response({ comment });
 	}
 
+	@SwaggerDecorator(createComment)
 	@Post('/')
 	async createComment(
 		@Request() req: ReqUser,
@@ -82,6 +95,7 @@ export class CommentController {
 		return Formatted.response({ comment });
 	}
 
+	@SwaggerDecorator(updateComment)
 	@Patch('/:id')
 	async updateComment(
 		@Request() req: ReqUser,
@@ -103,6 +117,7 @@ export class CommentController {
 		return Formatted.response({ comment: updatedComment });
 	}
 
+	@SwaggerDecorator(deleteComment)
 	@Delete('/:id')
 	async deleteComment(
 		@Request() req: ReqUser,

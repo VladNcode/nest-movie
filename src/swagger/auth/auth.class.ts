@@ -156,17 +156,6 @@ export class AuthSwaggerDoc {
 		};
 	}
 
-	public static noBearerUnauthorized() {
-		return {
-			'application/json': {
-				example: {
-					statusCode: 401,
-					message: 'Unauthorized',
-				},
-			},
-		};
-	}
-
 	public static registerBadRequest() {
 		return {
 			'application/json': {
