@@ -91,48 +91,50 @@ export class MovieService {
 			body: { actors, ...movie },
 		} = data;
 
-		const existingMovie = await this.getMovie(id);
-
 		if (actors) {
-			const actorTags = existingMovie?.actors.map(
-				({ firstName, lastName }) => `${firstName}${lastName ? ' ' + lastName : ''}`,
-			);
-
-			const tagsToRemove = actorTags?.filter(actor => !actors.includes(actor)).map(actorTag => ({ tag: actorTag }));
-
-			const actorsData = actors.map(actor => ({
-				where: { tag: actor },
-				create: {
-					tag: actor,
-					firstName: actor.split(' ')[0],
-					lastName: actor.split(' ')[1] || '',
-				},
-			}));
-
-			return this.prisma.movie.update({
-				where: { id },
-				data: {
-					...movie,
-					actors: {
-						disconnect: tagsToRemove,
-						connectOrCreate: actorsData,
-					},
-				},
-				include: {
-					actors: {
-						select: {
-							firstName: true,
-							lastName: true,
-						},
-					},
-				},
-			});
+			await this.updateActorsInMovie(id, actors);
 		}
 
 		return this.prisma.movie.update({
 			where: { id },
 			data: {
 				...movie,
+			},
+			include: {
+				actors: {
+					select: {
+						firstName: true,
+						lastName: true,
+					},
+				},
+			},
+		});
+	}
+
+	private async updateActorsInMovie(id: number, actors: string[]) {
+		const existingMovie = await this.getMovie(id);
+		const actorTags = existingMovie?.actors.map(
+			({ firstName, lastName }) => `${firstName}${lastName ? ' ' + lastName : ''}`,
+		);
+
+		const tagsToRemove = actorTags?.filter(actor => !actors.includes(actor)).map(actorTag => ({ tag: actorTag }));
+
+		const actorsData = actors.map(actor => ({
+			where: { tag: actor },
+			create: {
+				tag: actor,
+				firstName: actor.split(' ')[0],
+				lastName: actor.split(' ')[1] || '',
+			},
+		}));
+
+		return this.prisma.movie.update({
+			where: { id },
+			data: {
+				actors: {
+					disconnect: tagsToRemove,
+					connectOrCreate: actorsData,
+				},
 			},
 			include: {
 				actors: {

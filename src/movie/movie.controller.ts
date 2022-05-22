@@ -16,19 +16,31 @@ import {
 } from '@nestjs/common';
 import { Movie } from '@prisma/client';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 
 import { FileService, Formatted } from '../helpers/';
 import { MOVIE_DELETED_SUCCESFULLY, MOVIE_NOT_FOUND } from './movie.constants';
 import { MovieService } from './movie.service';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
 
+import {
+	createMovie,
+	deleteMovie,
+	getMovie,
+	getMovies,
+	updateMovie,
+	uploadPosters,
+} from '../swagger/movie/movie.decorators';
 import { CreateMovieDto, FindMovieDto, UpdateMovieDto } from 'src/exports/dto';
 import { ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } from '../exports/interfaces';
 
 @UsePipes(new ValidationPipe({ transform: true }))
+@ApiTags('Movies')
 @Controller('movies')
 export class MovieController {
 	constructor(private readonly movieService: MovieService, private readonly fileService: FileService) {}
 
+	@SwaggerDecorator(getMovies)
 	@Get('/')
 	async getMovies(@Query() query: FindMovieDto): Promise<ReturnManyRecords<'movies', Movie[]>> {
 		const { skip, take, title, id, order } = query;
@@ -43,6 +55,7 @@ export class MovieController {
 		return Formatted.moviesWithActors(movies);
 	}
 
+	@SwaggerDecorator(getMovie)
 	@Get('/:id')
 	async getMovie(@Param('id', ParseIntPipe) id: number): Promise<ReturnSingleRecord<'movie', Movie>> {
 		const movie = await this.movieService.getMovie(id);
@@ -54,6 +67,7 @@ export class MovieController {
 		return Formatted.movieWithActors(movie);
 	}
 
+	@SwaggerDecorator(createMovie)
 	@Post('/')
 	async createMovie(@Body() dto: CreateMovieDto): Promise<ReturnSingleRecord<'movie', Movie>> {
 		const { title, description, releaseDate, actors } = dto;
@@ -63,6 +77,7 @@ export class MovieController {
 		return Formatted.movieWithActors(movie);
 	}
 
+	@SwaggerDecorator(uploadPosters)
 	@Post('/:id/uploadposters/')
 	@UseInterceptors(FilesInterceptor('files'))
 	async uploadPosters(
@@ -79,6 +94,7 @@ export class MovieController {
 		return Formatted.movieWithActors(updatedMovie);
 	}
 
+	@SwaggerDecorator(updateMovie)
 	@Patch('/:id')
 	async updateMovie(
 		@Param('id', ParseIntPipe) id: number,
@@ -90,12 +106,15 @@ export class MovieController {
 		}
 
 		const updatedMovie = await this.movieService.updateMovie({ id, body: dto });
+
 		return Formatted.movieWithActors(updatedMovie);
 	}
 
+	@SwaggerDecorator(deleteMovie)
 	@Delete('/:id')
 	async deleteMovie(@Param('id', ParseIntPipe) id: number): Promise<ReturnDeletedMessage<'message', string>> {
 		await this.movieService.deleteMovie(id);
+
 		return Formatted.response({ message: MOVIE_DELETED_SUCCESFULLY });
 	}
 }

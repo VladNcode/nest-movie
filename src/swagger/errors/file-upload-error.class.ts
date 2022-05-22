@@ -4,10 +4,10 @@ import { SwaggerErrors } from '../swagger-error.constants';
 import { ISwaggerErrorExample } from './global-swagger-error.interface';
 
 export class FileUploadError implements ISwaggerErrorExample {
-	@ApiProperty({ example: 404 })
+	@ApiProperty({ example: 400 })
 	statusCode: number;
 
-	@ApiProperty({ example: 'Not Found' })
+	@ApiProperty({ example: 'Bad Request' })
 	error: string;
 
 	@ApiProperty({
