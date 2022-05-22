@@ -2,17 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { ISwaggerErrorExample } from './global-swagger-error.interface';
 
-const err = 'asdasdasdasdasd';
-const msg = 'asdasdsdsd';
-const code = 404;
-
 export class SwaggerErrorRecordNotFound implements ISwaggerErrorExample {
-	@ApiProperty({ example: code })
+	@ApiProperty({ example: 404 })
 	statusCode: number;
 
-	@ApiProperty({ example: msg })
+	@ApiProperty({ example: 'Not Found' })
 	error: string;
 
-	@ApiProperty({ example: err })
+	@ApiProperty({ example: 'Record with this id was not found!' })
 	message: string;
 }

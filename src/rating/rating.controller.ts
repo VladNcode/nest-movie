@@ -17,7 +17,7 @@ import { Rating } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
 import { PrismaService } from '../prisma/prisma.service';
-import { COULD_NOT_FIND_AVERAGE, RATING_DELETED_SUCCESSFULLY, USER_HAVE_NOT_RATED_YET } from './rating.constants';
+import { COULD_NOT_FIND_AVERAGE, RATING_DELETED_SUCCESSFULLY } from './rating.constants';
 import { RatingService } from './rating.service';
 import { Formatted } from '../helpers';
 
@@ -29,15 +29,26 @@ import {
 	ReturnSingleRecord,
 	GetAverageRating,
 } from 'src/exports/interfaces';
+import { ApiTags } from '@nestjs/swagger';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
+import {
+	createRating,
+	deleteRating,
+	getAverage,
+	getUserRating,
+	updateRating,
+} from '../swagger/rating/rating.decorators';
 
+@ApiTags('Rating')
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
 @Controller('rating')
 export class RatingController {
 	constructor(private readonly ratingService: RatingService, private readonly prisma: PrismaService) {}
 
-	@Get('/')
-	async userAlreadyRated(
+	@SwaggerDecorator(getUserRating)
+	@Get('/getUserRating')
+	async getUserRating(
 		@Request() req: ReqUser,
 		@Body() { ratingType, typeId }: GetOrDeleteRatingDto,
 	): Promise<UserAlreadyRated> {
@@ -47,13 +58,11 @@ export class RatingController {
 		}
 
 		const rated = await this.ratingService.getRating({ ratingType, typeId, userId: req.user.id });
-		if (!rated) {
-			return Formatted.response({ message: USER_HAVE_NOT_RATED_YET });
-		}
 
 		return Formatted.response({ userRating: rated });
 	}
 
+	@SwaggerDecorator(getAverage)
 	@Get('/avg')
 	async getAverage(@Body() { ratingType, typeId }: FindRatingAverageDto): Promise<GetAverageRating> {
 		const record = await this.prisma.checkIfRecordExists({ type: ratingType, id: typeId });
@@ -69,6 +78,7 @@ export class RatingController {
 		return Formatted.response({ type: ratingType, id: typeId, ratingAverage: Math.floor(avg) });
 	}
 
+	@SwaggerDecorator(createRating)
 	@Post('/')
 	async create(
 		@Request() req: ReqUser,
@@ -92,6 +102,7 @@ export class RatingController {
 		return Formatted.response({ rating });
 	}
 
+	@SwaggerDecorator(updateRating)
 	@Patch('/')
 	async update(
 		@Request() req: ReqUser,
@@ -109,6 +120,7 @@ export class RatingController {
 		return Formatted.response({ rating: updatedRating });
 	}
 
+	@SwaggerDecorator(deleteRating)
 	@Delete('/')
 	async delete(
 		@Request() req: ReqUser,
