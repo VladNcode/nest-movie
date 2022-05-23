@@ -14,6 +14,7 @@ import {
 	Get,
 	Query,
 	UnauthorizedException,
+	ForbiddenException,
 } from '@nestjs/common';
 import { Review } from '@prisma/client';
 
@@ -28,13 +29,18 @@ import { Formatted } from '../helpers';
 
 import { ReviewCreateDto, GetReviewsDto, UpdateReviewDto } from 'src/exports/dto';
 import { ReqUser, ReturnManyRecords, ReturnSingleRecord, ReturnDeletedMessage } from 'src/exports/interfaces';
+import { ApiTags } from '@nestjs/swagger';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
+import { createReview, deleteReview, getReview, getReviews, updateReview } from '../swagger/review/review.decorators';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseGuards(JwtAuthGuard)
+@ApiTags('Reviews')
 @Controller('reviews')
 export class ReviewController {
 	constructor(private readonly reviewService: ReviewService) {}
 
+	@SwaggerDecorator(getReviews)
 	@Get('/')
 	async getReviews(@Query() query: GetReviewsDto): Promise<ReturnManyRecords<'reviews', Review[]>> {
 		const { skip, take, movieId, userId, id, order } = query;
@@ -49,6 +55,7 @@ export class ReviewController {
 		return Formatted.response({ results: reviews.length, reviews });
 	}
 
+	@SwaggerDecorator(getReview)
 	@Get('/:id')
 	async getReview(@Param('id', ParseIntPipe) id: number): Promise<ReturnSingleRecord<'review', Review>> {
 		const review = await this.reviewService.getReview(id);
@@ -59,15 +66,18 @@ export class ReviewController {
 		return Formatted.response({ review });
 	}
 
+	@SwaggerDecorator(createReview)
 	@Post('/')
 	async createReview(
 		@Request() req: ReqUser,
 		@Body() { movieId, body }: ReviewCreateDto,
 	): Promise<ReturnSingleRecord<'review', Review>> {
 		const review = await this.reviewService.createReview({ movieId, body, userId: req.user.id });
+
 		return Formatted.response({ review });
 	}
 
+	@SwaggerDecorator(updateReview)
 	@Patch('/:id')
 	async updateReview(
 		@Request() req: ReqUser,
@@ -80,7 +90,7 @@ export class ReviewController {
 		}
 
 		if (review?.userId !== req.user.id) {
-			throw new UnauthorizedException(THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER);
+			throw new ForbiddenException(THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
 		const updatedReview = await this.reviewService.updateReview({ id, body });
@@ -88,6 +98,7 @@ export class ReviewController {
 		return Formatted.response({ review: updatedReview });
 	}
 
+	@SwaggerDecorator(deleteReview)
 	@Delete('/:id')
 	async deleteReview(
 		@Request() req: ReqUser,

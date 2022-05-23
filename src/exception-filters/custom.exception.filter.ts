@@ -34,11 +34,15 @@ export class CustomExceptionFilter implements ExceptionFilter {
 						/Unique constraint failed on the fields: \(`user_id`,`like_type`,`type_id`\)/,
 					);
 
+					const reviewError = exp.message.match(/Unique constraint failed on the fields: \(`user_id`,`movie_id`\)/);
+
 					statusCode = 400;
 					error = 'Bad Request';
 
 					message = ratingError
 						? 'This user already rated this record!'
+						: reviewError
+						? 'This user already reviewed this movie!'
 						: likeError
 						? 'This user already liked this record!'
 						: `${exp.meta?.target} already exist!`;

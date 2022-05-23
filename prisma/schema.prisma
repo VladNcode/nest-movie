@@ -80,7 +80,7 @@ model Review {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  body      String   @unique @db.VarChar(1000)
+  body      String   @db.VarChar(1000)
   userId    Int      @map("user_id")
   movieId   Int      @map("movie_id")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
