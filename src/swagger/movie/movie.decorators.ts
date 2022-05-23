@@ -1,9 +1,9 @@
 import {
 	ApiBadRequestResponse,
-	ApiBearerAuth,
 	ApiCreatedResponse,
 	ApiNotFoundResponse,
 	ApiOkResponse,
+	ApiSecurity,
 } from '@nestjs/swagger';
 
 import { SwaggerFileDecorator } from '../../decorators/swagger-file-upload.decorator';
@@ -20,14 +20,14 @@ export const getMovie = [
 ];
 
 export const createMovie = [
-	ApiBearerAuth('access_token'),
+	ApiSecurity('admin_token'),
 	ApiCreatedResponse({ description: 'Creates a movie', content: MovieSwaggerDoc.createMovieSuccess() }),
 	ApiBadRequestResponse({ description: 'Bad Request', content: MovieSwaggerDoc.createMovieBadRequest() }),
 	...NoBearerOrNeedToRelogin,
 ];
 
 export const uploadPosters = [
-	ApiBearerAuth('access_token'),
+	ApiSecurity('admin_token'),
 	SwaggerFileDecorator(),
 	ApiOkResponse({ description: 'Updates a movie', content: MovieSwaggerDoc.createMovieSuccess() }),
 	ApiBadRequestResponse({ description: 'Bad Request', type: FileUploadError }),
@@ -36,7 +36,7 @@ export const uploadPosters = [
 ];
 
 export const updateMovie = [
-	ApiBearerAuth('access_token'),
+	ApiSecurity('admin_token'),
 	ApiOkResponse({ description: 'Updates a movie', content: MovieSwaggerDoc.updateMovieSuccess() }),
 	ApiNotFoundResponse({ description: 'Not Found', content: MovieSwaggerDoc.movieNotFound() }),
 	ApiBadRequestResponse({ description: 'Bad Request', content: MovieSwaggerDoc.createMovieBadRequest() }),
@@ -44,7 +44,7 @@ export const updateMovie = [
 ];
 
 export const deleteMovie = [
-	ApiBearerAuth('access_token'),
+	ApiSecurity('admin_token'),
 	ApiOkResponse({ description: 'Deletes movie record', content: MovieSwaggerDoc.deleteMovieSuccess() }),
 	ApiNotFoundResponse({ description: 'Not Found', content: MovieSwaggerDoc.movieNotFound() }),
 	...NoBearerOrNeedToRelogin,

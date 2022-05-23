@@ -1,9 +1,9 @@
 import {
 	ApiBadRequestResponse,
-	ApiBearerAuth,
 	ApiCreatedResponse,
 	ApiNotFoundResponse,
 	ApiOkResponse,
+	ApiSecurity,
 } from '@nestjs/swagger';
 
 import { SwaggerFileDecorator } from '../../decorators/swagger-file-upload.decorator';
@@ -20,14 +20,14 @@ export const getActor = [
 ];
 
 export const createActor = [
-	ApiBearerAuth('access_token'),
+	ApiSecurity('admin_token'),
 	ApiCreatedResponse({ description: 'Creates an actor', content: ActorSwaggerDoc.getActor() }),
 	ApiBadRequestResponse({ description: 'Bad Request', content: ActorSwaggerDoc.createActorBadRequest() }),
 	...NoBearerOrNeedToRelogin,
 ];
 
 export const uploadPhoto = [
-	ApiBearerAuth('access_token'),
+	ApiSecurity('admin_token'),
 	SwaggerFileDecorator(),
 	ApiOkResponse(RETURNS_UPDATED_ACTOR),
 	ApiBadRequestResponse({ description: 'Bad Request', type: FileUploadError }),
@@ -35,14 +35,14 @@ export const uploadPhoto = [
 ];
 
 export const updateActor = [
-	ApiBearerAuth('access_token'),
+	ApiSecurity('admin_token'),
 	ApiOkResponse(RETURNS_UPDATED_ACTOR),
 	ApiNotFoundResponse({ status: 404, description: 'Not Found', type: RecordToUpdateNotFound }),
 	...NoBearerOrNeedToRelogin,
 ];
 
 export const deleteActor = [
-	ApiBearerAuth('access_token'),
+	ApiSecurity('admin_token'),
 	ApiOkResponse({ description: 'Deletes actor record', content: ActorSwaggerDoc.getActorDeletedMessage() }),
 	ApiNotFoundResponse({ status: 404, description: 'Not Found', type: RecordToDeleteNotFound }),
 	...NoBearerOrNeedToRelogin,

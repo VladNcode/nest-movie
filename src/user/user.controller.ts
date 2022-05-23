@@ -22,7 +22,6 @@ import { FileService, Formatted } from '../helpers/';
 import { USER_NOT_FOUND, USER_SUCCESSFULLY_DELETED } from './user.constants';
 import { UserService } from './user.service';
 import { SwaggerDecorator } from '../decorators/swagger.decorator';
-import { Auth } from '../decorators/apply.decorator';
 import { deleteUser, getMe, getUser, getUsers, updateUser, uploadAvatar } from '../swagger/user/user.decorators';
 
 import { FindUserDto, UpdateUserDto } from 'src/exports/dto';

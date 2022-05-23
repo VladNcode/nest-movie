@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -25,7 +25,7 @@ export class RolesGuard implements CanActivate {
 			if (user && user.role === 'admin') {
 				return true;
 			} else {
-				throw new UnauthorizedException(`This route is only available to users with roles: ['admin']`);
+				throw new ForbiddenException(`This route is only available to users with roles: ['admin']`);
 			}
 		}
 

@@ -9,6 +9,12 @@ async function bootstrap() {
 	const config = new DocumentBuilder()
 		.setTitle('Movies')
 		.setDescription('Nest movies pet project')
+		.addSecurity('admin_token', {
+			type: 'http',
+			bearerFormat: 'JWT',
+			scheme: 'bearer',
+			description: 'You need to be logged in as admin to use some of the routes!',
+		})
 		.setVersion('1.0')
 		.addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access_token')
 		.build();
