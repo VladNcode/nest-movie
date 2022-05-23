@@ -11,9 +11,16 @@ export const getUsers = [
 	...NoBearerOrNeedToRelogin,
 ];
 
+export const getMe = [
+	ApiBearerAuth('access_token'),
+	ApiOkResponse({ description: 'Returns current user', content: UserSwaggerDoc.getUser() }),
+	ApiNotFoundResponse({ description: 'Not Found', content: UserSwaggerDoc.userNotFound() }),
+	...NoBearerOrNeedToRelogin,
+];
+
 export const getUser = [
 	ApiBearerAuth('access_token'),
-	ApiOkResponse({ description: 'Returns a movie', content: UserSwaggerDoc.getUser() }),
+	ApiOkResponse({ description: 'Returns a user', content: UserSwaggerDoc.getUser() }),
 	ApiNotFoundResponse({ description: 'Not Found', content: UserSwaggerDoc.userNotFound() }),
 	...NoBearerOrNeedToRelogin,
 ];
