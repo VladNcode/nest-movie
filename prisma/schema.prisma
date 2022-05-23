@@ -93,7 +93,7 @@ model Comment {
   id               Int               @id @default(autoincrement())
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
-  body             String            @unique @db.VarChar(240)
+  body             String            @db.VarChar(240)
   commentType      CommentType       @map("comment_type")
   typeId           Int               @map("type_id")
   userId           Int               @map("user_id")

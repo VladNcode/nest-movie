@@ -86,7 +86,7 @@ export class ReviewController {
 			throw new NotFoundException(REVIEW_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (review?.userId !== req.user.id) {
+		if (review?.userId !== req.user.id && req.user.role !== 'admin') {
 			throw new ForbiddenException(THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
@@ -107,7 +107,7 @@ export class ReviewController {
 			throw new NotFoundException(REVIEW_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (review?.userId !== req.user.id) {
+		if (review?.userId !== req.user.id && req.user.role !== 'admin') {
 			throw new UnauthorizedException(THIS_REVIEW_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
