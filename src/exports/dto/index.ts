@@ -27,7 +27,6 @@ export * from '../../review/dto/create-review.dto';
 export * from '../../review/dto/get-review.dto';
 export * from '../../review/dto/update-review.dto';
 
-export * from '../../user/dto/create-user.dto';
 export * from '../../user/dto/find-user.dto';
 export * from '../../user/dto/update-user-email.dto';
 export * from '../../user/dto/update-user-password.dto';

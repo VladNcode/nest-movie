@@ -17,30 +17,34 @@ import {
 	UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/';
 import { FileService, Formatted } from '../helpers/';
 import { USER_NOT_FOUND, USER_SUCCESSFULLY_DELETED } from './user.constants';
 import { UserService } from './user.service';
+import { SwaggerDecorator } from '../decorators/swagger.decorator';
+import { deleteUser, getUser, getUsers, updateUser, uploadAvatar } from '../swagger/user/user.decorators';
 
-import { UserCreateDto, FindUserDto, UpdateUserDto } from 'src/exports/dto';
+import { FindUserDto, UpdateUserDto } from 'src/exports/dto';
 import {
 	ReqUser,
 	ReturnDeletedMessage,
 	ReturnManyRecords,
 	ReturnSanitizedUser,
-	ReturnSingleRecord,
+	SanitizedUser,
 } from 'src/exports/interfaces';
-import { User } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ transform: true }))
+@ApiTags('Users')
 @Controller('users')
 export class UserController {
 	constructor(private readonly userService: UserService, private readonly fileService: FileService) {}
 
+	@SwaggerDecorator(getUsers)
 	@Get('/')
-	async getUsers(@Query() query: FindUserDto): Promise<ReturnManyRecords<'users', User[]>> {
+	async getUsers(@Query() query: FindUserDto): Promise<ReturnManyRecords<'users', SanitizedUser[]>> {
 		const { skip, take, username, email, id, order } = query;
 
 		const users = await this.userService.getUsers({
@@ -50,21 +54,33 @@ export class UserController {
 			orderBy: { id: order },
 		});
 
-		return Formatted.response({ results: users.length, users });
+		const formattedUsers = users.map(({ id, createdAt, updatedAt, username, email, bio, avatar, role }) => ({
+			id,
+			createdAt,
+			updatedAt,
+			username,
+			email,
+			bio,
+			avatar,
+			role,
+		}));
+
+		return Formatted.response({ results: users.length, users: formattedUsers });
 	}
 
-	//TODO fix username
+	@SwaggerDecorator(getUser)
 	@Get('/:id')
-	async getUser(@Param('id', ParseIntPipe) username: string): Promise<ReturnSingleRecord<'user', User>> {
-		const user = await this.userService.getUser({ username });
+	async getUser(@Param('id', ParseIntPipe) id: number): Promise<ReturnSanitizedUser> {
+		const user = await this.userService.getUser({ id });
 
 		if (!user) {
 			throw new NotFoundException(USER_NOT_FOUND);
 		}
 
-		return Formatted.response({ user });
+		return Formatted.sanitizeUser(user);
 	}
 
+	@SwaggerDecorator(uploadAvatar)
 	@UseInterceptors(FileInterceptor('file'))
 	@Post('/avatar')
 	async uploadAvatar(
@@ -77,22 +93,14 @@ export class UserController {
 		return Formatted.sanitizeUser(updatedUser);
 	}
 
-	@Post('/')
-	async createUser(@Body() dto: UserCreateDto): Promise<ReturnSanitizedUser> {
-		const user = await this.userService.createUser({
-			...dto,
-			passwordChangedAt: new Date(Date.now() - 1000),
-		});
-
-		return Formatted.sanitizeUser(user);
-	}
-
-	@Patch('/')
+	@SwaggerDecorator(updateUser)
+	@Patch('/updateme')
 	async updateUser(@Request() req: ReqUser, @Body() dto: UpdateUserDto): Promise<ReturnSanitizedUser> {
 		const updatedUser = await this.userService.updateUser({ id: req.user.id, body: dto });
 		return Formatted.sanitizeUser(updatedUser);
 	}
 
+	@SwaggerDecorator(deleteUser)
 	@Delete('/:id')
 	async deleteUser(@Param('id', ParseIntPipe) id: number): Promise<ReturnDeletedMessage<'message', string>> {
 		await this.userService.deleteUser(id);
