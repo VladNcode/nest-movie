@@ -2,7 +2,6 @@ import {
 	Body,
 	Controller,
 	Post,
-	UseGuards,
 	UsePipes,
 	ValidationPipe,
 	Request,
@@ -18,7 +17,6 @@ import {
 } from '@nestjs/common';
 import { Review } from '@prisma/client';
 
-import { JwtAuthGuard } from '../auth/guards/';
 import {
 	REVIEW_DELETED,
 	REVIEW_WITH_THIS_ID_DOES_NOT_EXIST,
@@ -34,7 +32,6 @@ import { SwaggerDecorator } from '../decorators/swagger.decorator';
 import { createReview, deleteReview, getReview, getReviews, updateReview } from '../swagger/review/review.decorators';
 
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(JwtAuthGuard)
 @ApiTags('Reviews')
 @Controller('reviews')
 export class ReviewController {

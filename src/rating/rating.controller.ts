@@ -3,7 +3,6 @@ import {
 	Controller,
 	NotFoundException,
 	Post,
-	UseGuards,
 	UsePipes,
 	ValidationPipe,
 	Request,
@@ -14,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { Rating } from '@prisma/client';
 
-import { JwtAuthGuard } from '../auth/guards/';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
 import { PrismaService } from '../prisma/prisma.service';
 import { COULD_NOT_FIND_AVERAGE, RATING_DELETED_SUCCESSFULLY } from './rating.constants';
@@ -41,7 +39,6 @@ import {
 
 @ApiTags('Rating')
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(JwtAuthGuard)
 @Controller('rating')
 export class RatingController {
 	constructor(private readonly ratingService: RatingService, private readonly prisma: PrismaService) {}

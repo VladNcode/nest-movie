@@ -7,7 +7,6 @@ import {
 	ParseIntPipe,
 	Post,
 	Query,
-	UseGuards,
 	UsePipes,
 	ValidationPipe,
 	Request,
@@ -18,7 +17,6 @@ import {
 import { Comment } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
 
-import { JwtAuthGuard } from '../auth/guards/';
 import { ITEM_NOT_FOUND } from '../like/like.constants';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -42,7 +40,6 @@ import { ReqUser, ReturnDeletedMessage, ReturnManyRecords, ReturnSingleRecord } 
 
 @ApiTags('Comments')
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(JwtAuthGuard)
 @Controller('comments')
 export class CommentController {
 	constructor(private readonly commentService: CommentService, private readonly prisma: PrismaService) {}

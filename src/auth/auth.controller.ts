@@ -8,7 +8,6 @@ import {
 	Post,
 	Request,
 	UnauthorizedException,
-	UseGuards,
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
@@ -20,7 +19,6 @@ import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './a
 import { USERNAME_OR_PASSWORD_IS_INCORRECT } from '../user/user.constants';
 import { AuthService } from './auth.service';
 import { Formatted, Passwords } from '../helpers';
-import { JwtAuthGuard } from './guards';
 import { SwaggerDecorator } from '../decorators/swagger.decorator';
 import { deleteMe, login, register, updateEmail, updatePassword } from '../swagger/auth/auth.decorators';
 
@@ -64,7 +62,6 @@ export class AuthController {
 	}
 
 	@SwaggerDecorator(updateEmail)
-	@UseGuards(JwtAuthGuard)
 	@Patch('/updateEmail')
 	async updateEmail(@Request() req: ReqUser, @Body() dto: UpdateUserEmailDto): Promise<ReturnSanitizedUser> {
 		const oldEmail = req.user.email;
@@ -75,7 +72,6 @@ export class AuthController {
 	}
 
 	@SwaggerDecorator(updatePassword)
-	@UseGuards(JwtAuthGuard)
 	@Patch('/updatePassword')
 	async updatePassword(@Request() req: ReqUser, @Body() dto: UpdateUserPasswordDto): Promise<ReturnPasswordUpdate> {
 		const hashedPassword = await Passwords.hashPassword(dto.password);
@@ -85,7 +81,6 @@ export class AuthController {
 	}
 
 	@SwaggerDecorator(deleteMe)
-	@UseGuards(JwtAuthGuard)
 	@Delete('/deleteMe')
 	@HttpCode(204)
 	async deleteMe(@Request() req: ReqUser): Promise<ReturnDeletedMessage<'message', string>> {

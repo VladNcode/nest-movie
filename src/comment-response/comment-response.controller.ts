@@ -7,7 +7,6 @@ import {
 	ParseIntPipe,
 	Patch,
 	Query,
-	UseGuards,
 	UsePipes,
 	ValidationPipe,
 	Request,
@@ -18,7 +17,6 @@ import {
 import { CommentResponse } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
 
-import { JwtAuthGuard } from '../auth/guards';
 import {
 	COMMENT_DELETED_SUCCESFULLY,
 	COMMENT_WITH_THIS_ID_DOES_NOT_EXIST,
@@ -40,7 +38,6 @@ import {
 
 @ApiTags('Comment Responses')
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(JwtAuthGuard)
 @Controller('commentResponse')
 export class CommentResponseController {
 	constructor(private readonly commentResponseService: CommentResponseService) {}

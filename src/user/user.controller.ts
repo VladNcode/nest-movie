@@ -9,7 +9,6 @@ import {
 	Patch,
 	Post,
 	Query,
-	UseGuards,
 	UsePipes,
 	ValidationPipe,
 	Request,
@@ -19,7 +18,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 
-import { JwtAuthGuard } from '../auth/guards/';
 import { FileService, Formatted } from '../helpers/';
 import { USER_NOT_FOUND, USER_SUCCESSFULLY_DELETED } from './user.constants';
 import { UserService } from './user.service';
@@ -36,7 +34,6 @@ import {
 	SanitizedUser,
 } from 'src/exports/interfaces';
 
-@UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ transform: true }))
 @ApiTags('Users')
 @Controller('users')
@@ -44,7 +41,6 @@ export class UserController {
 	constructor(private readonly userService: UserService, private readonly fileService: FileService) {}
 
 	@SwaggerDecorator(getUsers)
-	@Auth('admin')
 	@Get('/')
 	async getUsers(@Query() query: FindUserDto): Promise<ReturnManyRecords<'users', SanitizedUser[]>> {
 		const { skip, take, username, email, id, order } = query;
@@ -83,7 +79,6 @@ export class UserController {
 	}
 
 	@SwaggerDecorator(getUser)
-	@Auth('admin')
 	@Get('/:id')
 	async getUser(@Param('id', ParseIntPipe) id: number): Promise<ReturnSanitizedUser> {
 		const user = await this.userService.getUser({ id });
@@ -109,7 +104,6 @@ export class UserController {
 	}
 
 	@SwaggerDecorator(updateUser)
-	@Auth('admin')
 	@Patch('/updateme')
 	async updateUser(@Request() req: ReqUser, @Body() dto: UpdateUserDto): Promise<ReturnSanitizedUser> {
 		const updatedUser = await this.userService.updateUser({ id: req.user.id, body: dto });
@@ -118,7 +112,6 @@ export class UserController {
 	}
 
 	@SwaggerDecorator(deleteUser)
-	@Auth('admin')
 	@Delete('/:id')
 	async deleteUser(@Param('id', ParseIntPipe) id: number): Promise<ReturnDeletedMessage<'message', string>> {
 		await this.userService.deleteUser(id);

@@ -9,7 +9,7 @@ export const userAlreadyLiked = [
 	...BAD_REQUEST_NOT_FOUND_NO_BEARER_NEED_TO_RELOGIN,
 ];
 
-export const count = [
+export const countLikes = [
 	ApiOkResponse({ description: 'Returns like count', content: LikeSwaggerDoc.getLikeCount() }),
 	...BAD_REQUEST_NOT_FOUND_NO_BEARER_NEED_TO_RELOGIN,
 ];

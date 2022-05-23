@@ -6,7 +6,6 @@ import {
 	UsePipes,
 	ValidationPipe,
 	Request,
-	UseGuards,
 	NotFoundException,
 	Get,
 	Query,
@@ -15,19 +14,17 @@ import {
 import { Like } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
 
-import { JwtAuthGuard } from '../auth/guards';
 import { PrismaService } from '../prisma/prisma.service';
 import { ITEM_NOT_FOUND, LIKE_DELETED_SUCCESSFULLY, NOT_LIKED } from './like.constants';
 import { LikeService } from './like.service';
 import { Formatted } from '../helpers';
 import { SwaggerDecorator } from '../decorators/swagger.decorator';
-import { count, create, deleteLike, userAlreadyLiked } from '../swagger/like/like.decorators';
+import { countLikes, create, deleteLike, userAlreadyLiked } from '../swagger/like/like.decorators';
 
 import { CountLikes, ReqUser, ReturnDeletedMessage, ReturnSingleRecord } from 'src/exports/interfaces';
 import { CreateOrDeleteLikeDto } from 'src/exports/dto';
 
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(JwtAuthGuard)
 @ApiTags('Likes')
 @Controller('likes')
 export class LikeController {
@@ -54,9 +51,9 @@ export class LikeController {
 		return Formatted.response({ userLiked: true });
 	}
 
-	@SwaggerDecorator(count)
+	@SwaggerDecorator(countLikes)
 	@Get('/count')
-	async count(@Query() { likeType, typeId }: CreateOrDeleteLikeDto): Promise<CountLikes> {
+	async countLikes(@Query() { likeType, typeId }: CreateOrDeleteLikeDto): Promise<CountLikes> {
 		const record = await this.prisma.checkIfRecordExists({ type: likeType, id: typeId });
 
 		if (!record) {
