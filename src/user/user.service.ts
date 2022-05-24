@@ -16,6 +16,23 @@ export class UserService {
 		return this.prisma.user.findMany({ skip, take, cursor, where, orderBy });
 	}
 
+	async getUserByToken(token: string) {
+		console.log('date:', new Date(Date.now()));
+
+		return this.prisma.user.findFirst({
+			where: {
+				AND: [
+					{ passwordResetToken: token },
+					{
+						passwordResetExpires: {
+							gte: new Date(Date.now()),
+						},
+					},
+				],
+			},
+		});
+	}
+
 	async createUser(data: Prisma.UserCreateInput): Promise<User> {
 		return await this.prisma.user.create({ data });
 	}

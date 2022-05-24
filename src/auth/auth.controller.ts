@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { compare } from 'bcrypt';
 import { ApiTags } from '@nestjs/swagger';
+import { randomBytes, createHash } from 'crypto';
 
 import { UserService } from '../user/user.service';
 import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './auth.constants';
@@ -30,6 +31,36 @@ import { ReqUser, ReturnDeletedMessage, ReturnPasswordUpdate, ReturnSanitizedUse
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
+
+	@Post('/forgotPassword')
+	async forgotPassword(@Body() { email }: UpdateUserEmailDto): Promise<ReturnPasswordUpdate> {
+		const user = await this.userService.getUser({ email });
+
+		if (!user) {
+			throw new BadRequestException('User not found!');
+		}
+
+		const resetToken = randomBytes(32).toString('hex');
+
+		const passwordResetToken = createHash('sha256').update(resetToken).digest('hex');
+		const passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+		await this.userService.updateUser({ body: { passwordResetToken, passwordResetExpires }, id: user.id });
+
+		console.log({ resetToken, passwordResetToken });
+
+		return Formatted.response({ message: PASSWORD_UPDATED_SUCCESSFULLY });
+	}
+
+	@Post('/resetPassword')
+	async resetPassword(@Body() { token }: any) {
+		console.log(token);
+		const hashedToken = createHash('sha256').update(token).digest('hex');
+
+		const user = await this.userService.getUserByToken(hashedToken);
+
+		return { user };
+	}
 
 	@SwaggerDecorator(login)
 	@HttpCode(200)

@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CommentType, Prisma } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Max } from 'class-validator';
 
+//TODO Max number applyDecorators
 export class GetCommentsDto {
 	@ApiProperty({ required: false, example: 1 })
 	@IsOptional()
+	@Max(999999999999999)
 	@Transform(({ value }) => parseInt(value))
 	@IsInt()
 	id: number;

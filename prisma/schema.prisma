@@ -36,21 +36,23 @@ enum RatingType {
 }
 
 model User {
-  id                Int               @id @default(autoincrement())
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @updatedAt @map("updated_at")
-  username          String            @unique
-  email             String            @unique
-  passwordHash      String            @map("password_hash")
-  passwordChangedAt DateTime          @default(now()) @map("password_changed_at")
-  bio               String
-  avatar            String            @default("avatar.jpg")
-  role              Role              @default(user)
-  Reviews           Review[]
-  Comments          Comment[]
-  Like              Like[]
-  Rating            Rating[]
-  CommentResponse   CommentResponse[]
+  id                   Int               @id @default(autoincrement())
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+  username             String            @unique
+  email                String            @unique
+  passwordHash         String            @map("password_hash")
+  passwordChangedAt    DateTime          @default(now()) @map("password_changed_at")
+  passwordResetToken   String?           @map("password_reset_token")
+  passwordResetExpires DateTime?         @map("password_reset_expires")
+  bio                  String
+  avatar               String            @default("avatar.jpg")
+  role                 Role              @default(user)
+  Reviews              Review[]
+  Comments             Comment[]
+  Like                 Like[]
+  Rating               Rating[]
+  CommentResponse      CommentResponse[]
 }
 
 model Actor {

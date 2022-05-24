@@ -12,6 +12,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 			'getActor',
 			'login',
 			'register',
+			'forgotPassword',
+			'resetPassword',
 			'getComments',
 			'getComment',
 			'getCommentResponses',

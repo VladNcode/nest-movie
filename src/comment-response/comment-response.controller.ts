@@ -101,7 +101,7 @@ export class CommentResponseController {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (comment?.userId !== req.user.id && req.user.role !== 'admin') {
+		if (comment?.userId !== req.user.id || req.user.role !== 'admin') {
 			throw new ForbiddenException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
@@ -122,7 +122,7 @@ export class CommentResponseController {
 			throw new NotFoundException(COMMENT_WITH_THIS_ID_DOES_NOT_EXIST);
 		}
 
-		if (comment?.userId !== req.user.id && req.user.role !== 'admin') {
+		if (comment.userId !== req.user.id || req.user.role !== 'admin') {
 			throw new ForbiddenException(THIS_COMMENT_DOES_NOT_BELONG_TO_CURRENT_USER);
 		}
 
