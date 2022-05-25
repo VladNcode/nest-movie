@@ -4,17 +4,17 @@ import { LikeRatingCommentType } from './types/like-or-rating.type';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
-	async onModuleInit() {
+	async onModuleInit(): Promise<void> {
 		await this.$connect();
 	}
 
-	async enableShutdownHooks(app: INestApplication) {
+	async enableShutdownHooks(app: INestApplication): Promise<void> {
 		this.$on('beforeExit', async () => {
 			await app.close();
 		});
 	}
 
-	async checkIfRecordExists(data: { type: LikeRatingCommentType; id: number }) {
+	async checkIfRecordExists(data: { type: LikeRatingCommentType; id: number }): Promise<boolean> {
 		const { type, id } = data;
 		const models = {
 			movie: await this.movie.findUnique({ where: { id } }),

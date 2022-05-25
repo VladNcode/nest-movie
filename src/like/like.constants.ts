@@ -1,4 +1,4 @@
-export const ITEM_NOT_FOUND = (likeType: string) =>
+export const ITEM_NOT_FOUND = (likeType: string): string =>
 	`${
 		likeType === 'CommentResponse' ? 'Comment' : likeType[0].toUpperCase() + likeType.slice(1)
 	} with this id was not found!`;

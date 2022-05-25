@@ -5,7 +5,7 @@ import { AppModule } from './app.module';
 import { JwtAuthGuard, RolesGuard } from './auth/guards';
 import { CustomExceptionFilter } from './exception-filters/custom.exception.filter';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
 	const config = new DocumentBuilder()
 		.setTitle('Movies')
 		.setDescription('Nest movies pet project')

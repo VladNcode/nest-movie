@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { compare } from 'bcrypt';
 import { ApiTags } from '@nestjs/swagger';
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes } from 'crypto';
 
 import { UserService } from '../user/user.service';
 import {
@@ -23,16 +23,18 @@ import {
 	EXPIRES_IN_10_MINUTES,
 	PASSWORD_RESET_TOKEN_WAS_SENT,
 	PASSWORD_UPDATED_SUCCESSFULLY,
+	USER_ALREADY_EXIST,
+	USER_NOT_FOUND,
 } from './auth.constants';
 import { USERNAME_OR_PASSWORD_IS_INCORRECT } from '../user/user.constants';
 import { AuthService } from './auth.service';
 import { Formatted, Passwords } from '../helpers';
 import { SwaggerDecorator } from '../decorators/swagger.decorator';
 import { deleteMe, login, register, updateEmail, updatePassword } from '../swagger/auth/auth.decorators';
+import { EmailService } from '../email/email.service';
 
 import { AuthDto, RegisterDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
 import { ReqUser, ReturnDeletedMessage, ReturnPasswordUpdate, ReturnSanitizedUser } from 'src/exports/interfaces';
-import { EmailService } from '../email/email.service';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @ApiTags('Auth')
@@ -66,7 +68,7 @@ export class AuthController {
 	async register(@Body() dto: RegisterDto): Promise<ReturnSanitizedUser> {
 		const existingUser = await this.userService.getUser({ username: dto.username });
 		if (existingUser) {
-			throw new BadRequestException('User already exist');
+			throw new BadRequestException(USER_ALREADY_EXIST);
 		}
 
 		const user = await this.authService.signup(dto);
@@ -95,8 +97,11 @@ export class AuthController {
 
 	//TODO SWAGGER
 	@Patch('/resetPassword/:token')
-	async resetPassword(@Param() { token }: { token: string }, @Body() dto: UpdateUserPasswordDto) {
-		const hashedToken = createHash('sha256').update(token).digest('hex');
+	async resetPassword(
+		@Param() { token }: { token: string },
+		@Body() dto: UpdateUserPasswordDto,
+	): Promise<ReturnDeletedMessage<'message', string>> {
+		const hashedToken = Passwords.createToken(token);
 
 		const user = await this.userService.getUserByToken(hashedToken);
 		if (!user) {
@@ -119,13 +124,14 @@ export class AuthController {
 		const user = await this.userService.getUser({ email });
 
 		if (!user) {
-			throw new BadRequestException('User not found!');
+			throw new BadRequestException(USER_NOT_FOUND);
 		}
 
 		const resetToken = randomBytes(32).toString('hex');
 		const url = `${req.protocol}://${req.get('host')}/api/auth/resetPassword/${resetToken}`;
-		const passwordResetToken = createHash('sha256').update(resetToken).digest('hex');
-		const passwordResetExpires = new Date(Date.now() + EXPIRES_IN_10_MINUTES);
+
+		const passwordResetToken = Passwords.createToken(resetToken);
+		const passwordResetExpires = EXPIRES_IN_10_MINUTES();
 
 		await this.userService.updateUser({ body: { passwordResetToken, passwordResetExpires }, id: user.id });
 		await this.emailService.sendPasswordReset({ to: email, url });

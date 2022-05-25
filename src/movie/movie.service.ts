@@ -111,7 +111,7 @@ export class MovieService {
 		});
 	}
 
-	private async updateActorsInMovie(id: number, actors: string[]) {
+	private async updateActorsInMovie(id: number, actors: string[]): Promise<Movie & ActorsFirstAndLastName> {
 		const existingMovie = await this.getMovie(id);
 		const actorTags = existingMovie?.actors.map(
 			({ firstName, lastName }) => `${firstName}${lastName ? ' ' + lastName : ''}`,

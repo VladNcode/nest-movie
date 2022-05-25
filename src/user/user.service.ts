@@ -16,7 +16,7 @@ export class UserService {
 		return this.prisma.user.findMany({ skip, take, cursor, where, orderBy });
 	}
 
-	async getUserByToken(token: string) {
+	async getUserByToken(token: string): Promise<User | null> {
 		console.log('date:', new Date(Date.now()));
 
 		return this.prisma.user.findFirst({

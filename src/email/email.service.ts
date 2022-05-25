@@ -1,4 +1,4 @@
-import { Injectable, Logger, Render } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as SendGrid from '@sendgrid/mail';
 import * as pug from 'pug';
@@ -20,14 +20,13 @@ export class EmailService {
 		SendGrid.setApiKey(SEND_GRID_KEY);
 	}
 
-	async send(mail: SendGrid.MailDataRequired) {
+	async send(mail: SendGrid.MailDataRequired): Promise<[SendGrid.ClientResponse, object]> {
 		const transport = await SendGrid.send(mail);
 		Logger.log(`E-Mail sent to ${mail.to}`);
 		return transport;
 	}
 
-	@Render('email-templates/passwordReset')
-	async sendPasswordReset({ to, url }: { to: string; url: string }) {
+	async sendPasswordReset({ to, url }: { to: string; url: string }): Promise<[SendGrid.ClientResponse, object]> {
 		const subject = 'Your password reset token (valid only for 10 minutes)';
 
 		const html = pug.renderFile(`${__dirname}/../views/email-templates/passwordReset.pug`, {

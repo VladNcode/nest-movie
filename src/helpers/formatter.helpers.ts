@@ -1,4 +1,5 @@
 import { Actor, Movie, User } from '@prisma/client';
+import { ReturnManyRecords, ReturnSanitizedUser, ReturnSingleRecord } from '../exports/interfaces';
 
 export type ResponseType = <T extends object>(data: T) => { status: string; data: T };
 
@@ -7,7 +8,7 @@ class FormattedReturn {
 		return { status: 'success', data };
 	};
 
-	sanitizeUser(user: User) {
+	sanitizeUser(user: User): ReturnSanitizedUser {
 		const { id, createdAt, updatedAt, username, email, bio, avatar, role } = user;
 
 		return this.response({
@@ -15,7 +16,9 @@ class FormattedReturn {
 		});
 	}
 
-	moviesWithActors(movies: (Movie & { actors: Pick<Actor, 'firstName' | 'lastName'>[] })[]) {
+	moviesWithActors(
+		movies: (Movie & { actors: Pick<Actor, 'firstName' | 'lastName'>[] })[],
+	): ReturnManyRecords<'movies', Movie[]> {
 		const formattedMovies = movies.map(movie => {
 			const { actors, ...noActorsMovie } = movie;
 			const actorsArray = [];
@@ -30,7 +33,9 @@ class FormattedReturn {
 		return this.response({ results: movies.length, movies: formattedMovies });
 	}
 
-	movieWithActors(movie: Movie & { actors: Pick<Actor, 'firstName' | 'lastName'>[] }) {
+	movieWithActors(
+		movie: Movie & { actors: Pick<Actor, 'firstName' | 'lastName'>[] },
+	): ReturnSingleRecord<'movie', Movie> {
 		const { actors, ...noActorsMovie } = movie;
 
 		const actorsArray = [];
