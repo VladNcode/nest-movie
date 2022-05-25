@@ -4,7 +4,7 @@ import {
 	ApiForbiddenResponse,
 	ApiNotFoundResponse,
 	ApiOkResponse,
-	ApiSecurity,
+	ApiBearerAuth,
 } from '@nestjs/swagger';
 import { NoBearerOrNeedToRelogin } from '../global-unauthorized-no-bearer/no-bearer-unauth.decorator';
 import { ReviewSwaggerDoc } from './review.class';
@@ -19,14 +19,14 @@ export const getReview = [
 ];
 
 export const createReview = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiCreatedResponse({ description: 'Creates a review', content: ReviewSwaggerDoc.createReviewSuccess() }),
 	ApiBadRequestResponse({ description: 'Bad Request', content: ReviewSwaggerDoc.createReviewBadRequest() }),
 	...NoBearerOrNeedToRelogin,
 ];
 
 export const updateReview = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({ description: 'Updates a review', content: ReviewSwaggerDoc.updateReviewSuccess() }),
 	ApiNotFoundResponse({ description: 'Not Found', content: ReviewSwaggerDoc.reviewNotFound() }),
 	ApiBadRequestResponse({ description: 'Bad Request', content: ReviewSwaggerDoc.UpdateReviewBadRequest() }),
@@ -35,7 +35,7 @@ export const updateReview = [
 ];
 
 export const deleteReview = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({ description: 'Deletes movie record', content: ReviewSwaggerDoc.deleteReviewSuccess() }),
 	ApiNotFoundResponse({ description: 'Not Found', content: ReviewSwaggerDoc.reviewNotFound() }),
 	...NoBearerOrNeedToRelogin,

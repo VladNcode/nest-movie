@@ -4,7 +4,7 @@ import {
 	ApiForbiddenResponse,
 	ApiNotFoundResponse,
 	ApiOkResponse,
-	ApiSecurity,
+	ApiBearerAuth,
 } from '@nestjs/swagger';
 
 import { RecordToDeleteNotFound, RecordToUpdateNotFound } from '../../exports/swagger-errors';
@@ -23,7 +23,7 @@ export const getCommentResponse = [
 ];
 
 export const createCommentResponse = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiCreatedResponse({ description: 'Creates a comment', content: CommentResponseSwaggerDoc.createCommentResponse() }),
 	ApiBadRequestResponse({
 		description: 'Bad Request',
@@ -33,7 +33,7 @@ export const createCommentResponse = [
 ];
 
 export const updateCommentResponse = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({
 		description: 'Returns updated comment',
 		content: CommentResponseSwaggerDoc.updatedCommentResponse(),
@@ -47,7 +47,7 @@ export const updateCommentResponse = [
 ];
 
 export const deleteCommentResponse = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({
 		description: 'Deletes comment record',
 		content: CommentResponseSwaggerDoc.getCommentResponseDeletedMessage(),

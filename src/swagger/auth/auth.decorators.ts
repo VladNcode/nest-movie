@@ -3,14 +3,14 @@ import {
 	ApiBadRequestResponse,
 	ApiUnauthorizedResponse,
 	ApiResponse,
-	ApiSecurity,
+	ApiBearerAuth,
 } from '@nestjs/swagger';
 
 import { AuthSwaggerDoc } from './auth.class';
 import { NoBearerOrNeedToRelogin } from '../global-unauthorized-no-bearer/no-bearer-unauth.decorator';
 
 export const updateEmail = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({ description: 'Returns an updated user', content: AuthSwaggerDoc.updateEmailSuccess() }),
 	ApiBadRequestResponse({ description: 'Bad Request', content: AuthSwaggerDoc.updateEmailBadRequest() }),
 	...NoBearerOrNeedToRelogin,
@@ -28,14 +28,14 @@ export const register = [
 ];
 
 export const updatePassword = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({ description: 'Returns success message', content: AuthSwaggerDoc.updatePasswordSuccess() }),
 	ApiBadRequestResponse({ description: 'Bad Request', content: AuthSwaggerDoc.updatePasswordBadRequest() }),
 	...NoBearerOrNeedToRelogin,
 ];
 
 export const deleteMe = [
-	ApiSecurity({ admin_token: [], access_token: [] }),
+	ApiBearerAuth('access_token'),
 	ApiOkResponse({ description: 'Returns success message', content: AuthSwaggerDoc.deleteUserSuccess() }),
 	...NoBearerOrNeedToRelogin,
 ];
