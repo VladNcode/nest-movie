@@ -1,13 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
-import { Transform } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
+import { LimitId } from '../../decorators/limitId.decorator';
 
 export class FindActorDto {
 	@ApiProperty({ required: false, example: 4 })
 	@IsOptional()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	id: number;
 
 	@ApiProperty({ required: false, example: 'Nicolas' })
@@ -22,14 +21,12 @@ export class FindActorDto {
 
 	@ApiProperty({ required: false, example: 0 })
 	@IsOptional()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	skip: number;
 
 	@ApiProperty({ required: false, example: 1 })
 	@IsOptional()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	take: number;
 
 	@ApiProperty({ required: false, enum: ['asc', 'desc'] })

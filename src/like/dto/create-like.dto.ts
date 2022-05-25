@@ -1,13 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { LikeType } from '@prisma/client';
-import { Transform } from 'class-transformer';
-import { IsIn, IsInt, IsNotEmpty } from 'class-validator';
+import { IsIn, IsNotEmpty } from 'class-validator';
+import { LimitId } from '../../decorators/limitId.decorator';
 
 export class CreateOrDeleteLikeDto {
 	@ApiProperty({ required: true, example: 1 })
 	@IsNotEmpty()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	typeId: number;
 
 	@ApiProperty({ required: true, enum: ['movie', 'actor', 'review', 'comment', 'commentResponse'] })

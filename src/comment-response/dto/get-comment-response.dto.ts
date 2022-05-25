@@ -1,37 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
-import { Transform } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
+import { LimitId } from '../../decorators/limitId.decorator';
 
 export class GetCommentResponseDto {
 	@ApiProperty({ required: false, example: 1 })
 	@IsOptional()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	id: number;
 
 	@ApiProperty({ required: false, example: 1 })
 	@IsOptional()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	userId: number;
 
 	@ApiProperty({ required: false, example: 1 })
 	@IsOptional()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	commentId: number;
 
 	@ApiProperty({ required: false, example: 1 })
 	@IsOptional()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	skip: number;
 
 	@ApiProperty({ required: false, example: 1 })
 	@IsOptional()
-	@Transform(({ value }) => parseInt(value))
-	@IsInt()
+	@LimitId()
 	take: number;
 
 	@ApiProperty({ required: false, enum: ['asc', 'desc'] })
