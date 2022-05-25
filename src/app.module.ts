@@ -14,6 +14,7 @@ import { CommentModule } from './comment/comment.module';
 import { CommentResponseModule } from './comment-response/comment-response.module';
 import { LikeModule } from './like/like.module';
 import { RatingModule } from './rating/rating.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
 	imports: [
@@ -33,6 +34,7 @@ import { RatingModule } from './rating/rating.module';
 		CommentResponseModule,
 		LikeModule,
 		RatingModule,
+		EmailModule,
 	],
 	controllers: [],
 	providers: [PrismaService],

@@ -51,7 +51,12 @@ export class UserService {
 		const { email, password } = data;
 		return this.prisma.user.update({
 			where: { email },
-			data: { passwordHash: password, passwordChangedAt: new Date(Date.now() - 1000) },
+			data: {
+				passwordHash: password,
+				passwordChangedAt: new Date(Date.now() - 1000),
+				passwordResetToken: null,
+				passwordResetExpires: null,
+			},
 		});
 	}
 

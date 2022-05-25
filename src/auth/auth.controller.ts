@@ -3,7 +3,9 @@ import {
 	Body,
 	Controller,
 	Delete,
+	ForbiddenException,
 	HttpCode,
+	Param,
 	Patch,
 	Post,
 	Request,
@@ -16,7 +18,12 @@ import { ApiTags } from '@nestjs/swagger';
 import { randomBytes, createHash } from 'crypto';
 
 import { UserService } from '../user/user.service';
-import { ACCOUNT_DELETED_SUCCESSFULLY, PASSWORD_UPDATED_SUCCESSFULLY } from './auth.constants';
+import {
+	ACCOUNT_DELETED_SUCCESSFULLY,
+	EXPIRES_IN_10_MINUTES,
+	PASSWORD_RESET_TOKEN_WAS_SENT,
+	PASSWORD_UPDATED_SUCCESSFULLY,
+} from './auth.constants';
 import { USERNAME_OR_PASSWORD_IS_INCORRECT } from '../user/user.constants';
 import { AuthService } from './auth.service';
 import { Formatted, Passwords } from '../helpers';
@@ -25,42 +32,17 @@ import { deleteMe, login, register, updateEmail, updatePassword } from '../swagg
 
 import { AuthDto, RegisterDto, UpdateUserEmailDto, UpdateUserPasswordDto } from 'src/exports/dto';
 import { ReqUser, ReturnDeletedMessage, ReturnPasswordUpdate, ReturnSanitizedUser } from 'src/exports/interfaces';
+import { EmailService } from '../email/email.service';
 
 @UsePipes(new ValidationPipe({ transform: true }))
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-	constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
-
-	@Post('/forgotPassword')
-	async forgotPassword(@Body() { email }: UpdateUserEmailDto): Promise<ReturnPasswordUpdate> {
-		const user = await this.userService.getUser({ email });
-
-		if (!user) {
-			throw new BadRequestException('User not found!');
-		}
-
-		const resetToken = randomBytes(32).toString('hex');
-
-		const passwordResetToken = createHash('sha256').update(resetToken).digest('hex');
-		const passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
-
-		await this.userService.updateUser({ body: { passwordResetToken, passwordResetExpires }, id: user.id });
-
-		console.log({ resetToken, passwordResetToken });
-
-		return Formatted.response({ message: PASSWORD_UPDATED_SUCCESSFULLY });
-	}
-
-	@Post('/resetPassword')
-	async resetPassword(@Body() { token }: any) {
-		console.log(token);
-		const hashedToken = createHash('sha256').update(token).digest('hex');
-
-		const user = await this.userService.getUserByToken(hashedToken);
-
-		return { user };
-	}
+	constructor(
+		private readonly userService: UserService,
+		private readonly authService: AuthService,
+		private readonly emailService: EmailService,
+	) {}
 
 	@SwaggerDecorator(login)
 	@HttpCode(200)
@@ -109,6 +91,46 @@ export class AuthController {
 		await this.userService.updateUserPassword({ email: req.user.email, password: hashedPassword });
 
 		return Formatted.response({ message: PASSWORD_UPDATED_SUCCESSFULLY });
+	}
+
+	//TODO SWAGGER
+	@Patch('/resetPassword/:token')
+	async resetPassword(@Param() { token }: { token: string }, @Body() dto: UpdateUserPasswordDto) {
+		const hashedToken = createHash('sha256').update(token).digest('hex');
+
+		const user = await this.userService.getUserByToken(hashedToken);
+		if (!user) {
+			throw new ForbiddenException('Token is invalid or has expired');
+		}
+
+		const hashedPassword = await Passwords.hashPassword(dto.password);
+
+		await this.userService.updateUserPassword({ email: user.email, password: hashedPassword });
+
+		return Formatted.response({ message: PASSWORD_UPDATED_SUCCESSFULLY });
+	}
+
+	//TODO SWAGGER
+	@Post('/forgotPassword')
+	async forgotPassword(
+		@Request() req: { protocol: string; get: (host: string) => string },
+		@Body() { email }: UpdateUserEmailDto,
+	): Promise<ReturnPasswordUpdate> {
+		const user = await this.userService.getUser({ email });
+
+		if (!user) {
+			throw new BadRequestException('User not found!');
+		}
+
+		const resetToken = randomBytes(32).toString('hex');
+		const url = `${req.protocol}://${req.get('host')}/api/auth/resetPassword/${resetToken}`;
+		const passwordResetToken = createHash('sha256').update(resetToken).digest('hex');
+		const passwordResetExpires = new Date(Date.now() + EXPIRES_IN_10_MINUTES);
+
+		await this.userService.updateUser({ body: { passwordResetToken, passwordResetExpires }, id: user.id });
+		await this.emailService.sendPasswordReset({ to: email, url });
+
+		return Formatted.response({ message: PASSWORD_RESET_TOKEN_WAS_SENT });
 	}
 
 	@SwaggerDecorator(deleteMe)
